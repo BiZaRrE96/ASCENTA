@@ -367,6 +367,38 @@ RectTransform:
   m_AnchoredPosition: {x: 20.000122, y: -250.30005}
   m_SizeDelta: {x: 1000, y: 256}
   m_Pivot: {x: 0, y: 1}
+--- !u!1 &219288084
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 219288085}
+  m_Layer: 0
+  m_Name: VFX
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &219288085
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 219288084}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1088817432}
+  m_Father: {fileID: 683478620}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -938,6 +970,7 @@ GameObject:
   - component: {fileID: 683478617}
   - component: {fileID: 683478621}
   - component: {fileID: 683478623}
+  - component: {fileID: 683478624}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -977,6 +1010,7 @@ MonoBehaviour:
   snapMaxDuration: 2
   snapCompletionDistance: 0.05
   snapCompletionAngle: 2
+  ignoreGravityDuringDash: 1
 --- !u!54 &683478618
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1051,6 +1085,7 @@ Transform:
   - {fileID: 628637725}
   - {fileID: 802419194}
   - {fileID: 2134510701}
+  - {fileID: 219288085}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &683478621
@@ -1115,6 +1150,24 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &683478624
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 683478616}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61e79bcd9d0d5614a8dc1e3f45535201, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DashController
+  movementController: {fileID: 683478617}
+  dashStrength: 8
+  doubleTapWindow: 0.35
+  directionMatchThreshold: 0.75
+  dashDuration: 0.2
+  dashCooldown: 1
 --- !u!1 &788660466
 GameObject:
   m_ObjectHideFlags: 0
@@ -1150,9 +1203,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::JumpPadBehaviour
   boostForce: 18
   minBoostInterval: 0.1
-  scaleForceByMass: 0
+  scaleForceByMass: 1
   landingTarget: {fileID: 125541830}
-  minTravelTime: 0.15
+  minTravelTime: 1
   maxTravelTime: 32
   directionRotationOffset: {x: -90, y: 0, z: 0}
 --- !u!114 &788660468
@@ -1421,6 +1474,143 @@ RectTransform:
   m_AnchoredPosition: {x: -382, y: 435}
   m_SizeDelta: {x: 512, y: 128}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1088817431
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1088817432}
+  - component: {fileID: 1088817434}
+  - component: {fileID: 1088817433}
+  - component: {fileID: 1088817435}
+  m_Layer: 0
+  m_Name: Vignette
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1088817432
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1088817431}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 219288085}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1088817433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1088817431}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99af35ef4ed941b4b9c91d615e0c5d27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DashVignetteEffect
+  autoSubscribe: 1
+  targetVolume: {fileID: 1088817434}
+  targetWeight: 1
+  holdTime: 0.25
+  weightCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 2
+      outSlope: 2
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &1088817434
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1088817431}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
+  m_IsGlobal: 1
+  priority: 0
+  blendDistance: 0
+  weight: 0
+  sharedProfile: {fileID: 11400000, guid: fc51158f991e9ab46bf54a5d517719d9, type: 2}
+--- !u!114 &1088817435
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1088817431}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4be755f9a7fa32641b216f8df6d4ad58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DashFOVEffector
+  target: {fileID: 628637726}
+  weight: 1
+  active: 1
+  blendInTime: 0.1
+  blendOutTime: 0.15
+  minDuration: 0.2
+  durationScale: 1
+  additionalDuration: 0
+  maxFovIncrease: 12
+  response:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  useUnscaledTime: 1
 --- !u!1 &1217821066
 GameObject:
   m_ObjectHideFlags: 0

@@ -8,7 +8,8 @@ public class MovementController : MonoBehaviour
     public enum MovementState
     {
         Default,
-        Airborne
+        Airborne,
+        Dashing
     }
 
     [SerializeField] Rigidbody rb;
@@ -45,6 +46,10 @@ public class MovementController : MonoBehaviour
     [SerializeField] float snapMaxDuration = 2f;
     [SerializeField] float snapCompletionDistance = 0.05f;
     [SerializeField] float snapCompletionAngle = 2f;
+    
+    [Header("Dash State")]
+    [SerializeField, Tooltip("If enabled, gravity is temporarily disabled while MovementState is Dashing.")]
+    bool ignoreGravityDuringDash = true;
 
     public event Action OnSnapCompleted;
 
@@ -57,6 +62,7 @@ public class MovementController : MonoBehaviour
     MovementState movementState = MovementState.Default;
     float currentTraction;
     float currentSurfaceDamping;
+    bool defaultUseGravity = true;
 
     public float CurrentTraction => currentTraction;
     public float CurrentSurfaceDamping => currentSurfaceDamping;
@@ -104,6 +110,11 @@ public class MovementController : MonoBehaviour
 
         currentTraction = defaultTraction;
         currentSurfaceDamping = defaultSurfaceDamping;
+
+        if (rb != null)
+        {
+            defaultUseGravity = rb.useGravity;
+        }
     }
 
     void OnLook(InputValue value)
@@ -182,6 +193,8 @@ public class MovementController : MonoBehaviour
             return;
         }
 
+        UpdateGravityState();
+
         UpdateAutoMovementState();
 
         float deltaTime = Time.fixedDeltaTime;
@@ -258,16 +271,42 @@ public class MovementController : MonoBehaviour
 
     void UpdateMoveIntent()
     {
+        moveIntent = ConvertMoveInputToWorld(moveInput);
+    }
+
+    public Vector3 ConvertMoveInputToWorld(Vector2 input)
+    {
         Vector3 forwardDir = forward != null ? forward.forward : transform.forward;
         Vector3 rightDir = forward != null ? forward.right : transform.right;
 
-        Vector3 desired = forwardDir * moveInput.y + rightDir * moveInput.x;
+        Vector3 desired = forwardDir * input.y + rightDir * input.x;
         if (desired.sqrMagnitude > 1f)
         {
             desired.Normalize();
         }
 
-        moveIntent = desired;
+        return desired;
+    }
+
+    void UpdateGravityState()
+    {
+        if (rb == null)
+        {
+            return;
+        }
+
+        bool shouldIgnoreGravity = ignoreGravityDuringDash && movementState == MovementState.Dashing;
+        if (shouldIgnoreGravity)
+        {
+            if (rb.useGravity)
+            {
+                rb.useGravity = false;
+            }
+        }
+        else if (rb.useGravity != defaultUseGravity)
+        {
+            rb.useGravity = defaultUseGravity;
+        }
     }
 
     static float NormalizeSignedAngle(float angle)
