@@ -519,6 +519,8 @@ Transform:
   - {fileID: 1088817432}
   - {fileID: 179650327}
   - {fileID: 2079425205}
+  - {fileID: 1156977471}
+  - {fileID: 1831277159}
   m_Father: {fileID: 683478620}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &330585543
@@ -2045,6 +2047,58 @@ MonoBehaviour:
   slowMotionScale: 0.3
   singleUse: 0
   gracePeriod: 1
+--- !u!1 &1156977470
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1156977471}
+  - component: {fileID: 1156977472}
+  m_Layer: 0
+  m_Name: Jumppad
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1156977471
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1156977470}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 219288085}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1156977472
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1156977470}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5d79fce081a5ea4290fcbb1d7036d75, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JumppadSFX
+  autoSubscribe: 1
+  jumpPadEvent:
+    Guid:
+      Data1: -284709779
+      Data2: 1220898900
+      Data3: -2119813461
+      Data4: 1880204741
+    Path: event:/JumpPad
 --- !u!1 &1188918858
 GameObject:
   m_ObjectHideFlags: 0
@@ -2395,6 +2449,70 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 70, y: -35, z: 0}
+--- !u!1 &1288459107
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1288459109}
+  - component: {fileID: 1288459108}
+  m_Layer: 0
+  m_Name: Music
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1288459108
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1288459107}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9225605fe853a44b9e09b382949b8b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MusicPlayer
+  musicEvent:
+    Guid:
+      Data1: -1641434627
+      Data2: 1183159185
+      Data3: 1102531740
+      Data4: 109131538
+    Path: event:/Music
+  velocityIntensityParameter: Velocity_Intensity
+  attachToGameObject: 1
+  allowFadeoutOnStop: 1
+  thresholdSpeed: 3
+  maxSpeed: 12
+  useHorizontalSpeed: 1
+  initialIntensity: 0
+  baseIncreaseRate: 0.05
+  extraIncreaseRate: 0.1
+  decreaseRate: 0.25
+  decreaseDelay: 0.25
+  movementController: {fileID: 683478617}
+  rb: {fileID: 683478618}
+--- !u!4 &1288459109
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1288459107}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -6.46544, y: -0.5, z: 4.75345}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1451891097
 GameObject:
   m_ObjectHideFlags: 0
@@ -2772,6 +2890,63 @@ MonoBehaviour:
   groundedText: {fileID: 1962252358}
   tractionText: {fileID: 214127952}
   movementController: {fileID: 683478617}
+--- !u!1 &1831277158
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1831277159}
+  - component: {fileID: 1831277160}
+  m_Layer: 0
+  m_Name: Landed
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1831277159
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1831277158}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 219288085}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1831277160
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1831277158}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8eca04b1a6eb9045ab08077dcc90860, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LandedSFX
+  autoSubscribe: 1
+  landedEvent:
+    Guid:
+      Data1: -948652558
+      Data2: 1133818157
+      Data3: 1742136744
+      Data4: -1515537310
+    Path: event:/Landed
+  intensityParameter: Land_Intensity
+  attachToGameObject: 1
+  terminalVelocity: 20
+  useVerticalSpeed: 1
+  rb: {fileID: 683478618}
 --- !u!1 &1962252357
 GameObject:
   m_ObjectHideFlags: 0
@@ -3071,6 +3246,7 @@ SceneRoots:
   m_Roots:
   - {fileID: 410087041}
   - {fileID: 832575519}
+  - {fileID: 1288459109}
   - {fileID: 683478620}
   - {fileID: 1451891101}
   - {fileID: 1217821072}

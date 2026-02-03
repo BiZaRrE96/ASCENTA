@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="AudioFile" id="{1056b029-408b-4b35-bd7b-a3b1679c37d8}">
+		<property name="assetPath">
+			<value>SFXs/metalic_impact.mp3</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>0.83999999999999997</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{190cb6bc-ffd7-45c8-b669-e1de5be69b50}</destination>
+		</relationship>
+	</object>
+</objects>

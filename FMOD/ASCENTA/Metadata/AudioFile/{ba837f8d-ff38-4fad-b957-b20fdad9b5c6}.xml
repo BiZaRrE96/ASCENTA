@@ -2,7 +2,7 @@
 <objects serializationModel="Studio.02.02.00">
 	<object class="AudioFile" id="{ba837f8d-ff38-4fad-b957-b20fdad9b5c6}">
 		<property name="assetPath">
-			<value>dash_base_1.mp3</value>
+			<value>SFXs/dash_base_1.mp3</value>
 		</property>
 		<property name="frequencyInKHz">
 			<value>48</value>

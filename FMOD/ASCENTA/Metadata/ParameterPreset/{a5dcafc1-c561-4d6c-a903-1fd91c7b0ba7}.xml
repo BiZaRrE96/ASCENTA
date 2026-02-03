@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="ParameterPreset" id="{a5dcafc1-c561-4d6c-a903-1fd91c7b0ba7}">
+		<property name="name">
+			<value>Land_Intensity</value>
+		</property>
+		<relationship name="folder">
+			<destination>{60eccda7-7193-4350-92b1-fa049f1aa2d5}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{d1d3f7fe-c07a-4341-ab23-1c36fa499d5f}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{d1d3f7fe-c07a-4341-ab23-1c36fa499d5f}">
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+	</object>
+</objects>

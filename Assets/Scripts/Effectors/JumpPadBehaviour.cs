@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ASCENTA.Events;
 using UnityEngine;
 
 public class JumpPadBehaviour : MonoBehaviour
@@ -27,6 +28,12 @@ public class JumpPadBehaviour : MonoBehaviour
 
     public void TryBoost(Rigidbody rb)
     {
+        Vector3 fallbackPoint = rb != null ? rb.worldCenterOfMass : transform.position;
+        TryBoost(rb, fallbackPoint);
+    }
+
+    public void TryBoost(Rigidbody rb, Vector3 contactPoint)
+    {
         if (rb == null || rb.isKinematic || boostForce <= 0f)
         {
             return;
@@ -37,7 +44,7 @@ public class JumpPadBehaviour : MonoBehaviour
             return;
         }
 
-        ApplyBoost(rb);
+        ApplyBoost(rb, contactPoint);
         lastBoostTimestamps[instanceId] = Time.time;
     }
 
@@ -55,7 +62,7 @@ public class JumpPadBehaviour : MonoBehaviour
         return true;
     }
 
-    void ApplyBoost(Rigidbody rb)
+    void ApplyBoost(Rigidbody rb, Vector3 contactPoint)
     {
         rb.angularVelocity = Vector3.zero;
         rb.linearVelocity = Vector3.zero;
@@ -63,11 +70,14 @@ public class JumpPadBehaviour : MonoBehaviour
         Vector3 boostDirection = GetBoostDirection();
         float mass = Mathf.Max(rb.mass, 0.01f);
         float impulseMagnitude = boostForce * (scaleForceByMass ? mass : 1f);
+        Vector3 appliedImpulse;
 
         if (landingTarget == null)
         {
             Vector3 forwardImpulse = boostDirection * impulseMagnitude;
             rb.AddForce(forwardImpulse, ForceMode.Impulse);
+            appliedImpulse = forwardImpulse;
+            PublishBoostEvent(contactPoint, boostDirection, appliedImpulse.magnitude);
             return;
         }
 
@@ -161,7 +171,19 @@ public class JumpPadBehaviour : MonoBehaviour
         Vector3 verticalImpulse = upDir * (verticalDelta * mass);
         rb.AddForce(verticalImpulse, ForceMode.Impulse);
 
+        appliedImpulse = baseImpulse + verticalImpulse;
+        PublishBoostEvent(contactPoint, boostDirection, appliedImpulse.magnitude);
         NotifyPlayerMovementState(rb, travelTime);
+    }
+
+    void PublishBoostEvent(Vector3 contactPoint, Vector3 boostDirection, float force)
+    {
+        if (force <= Mathf.Epsilon)
+        {
+            return;
+        }
+
+        EventBus.Publish(new OnJumpPadBoostEvent(contactPoint, boostDirection, force));
     }
 
     void NotifyPlayerMovementState(Rigidbody rb, float travelTime)
