@@ -52,6 +52,7 @@
     <Compile Include="Assets\Scripts\Effectors\JumpPadCollisionBehaviour.cs" />
     <Compile Include="Assets\Scripts\Movement\Visuals\DashFOVEffector.cs" />
     <Compile Include="Assets\Scripts\Movement\Visuals\CameraFOVEffector.cs" />
+    <Compile Include="Assets\Scripts\Time\TutorialTimeStopTrigger.cs" />
     <Compile Include="Assets\Scripts\Effectors\JumpPadBehaviour.cs" />
     <Compile Include="Assets\Scripts\Movement\Dash\DashController.cs" />
     <Compile Include="Assets\Scripts\Debug\GroundDebugDisplay.cs" />
@@ -59,6 +60,7 @@
     <Compile Include="Assets\Scripts\Debug\TextVelocity.cs" />
     <Compile Include="Assets\Scripts\Movement\Core\Groundcheck.cs" />
     <Compile Include="Assets\Scripts\Events\OnDashEvent.cs" />
+    <Compile Include="Assets\Scripts\Time\TimeController.cs" />
     <Compile Include="Assets\Scripts\Movement\Visuals\DashVignetteEffect.cs" />
     <Compile Include="Assets\Scripts\Movement\Visuals\VelocityFOVEffector.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
@@ -67,6 +69,8 @@
     <Compile Include="Assets\Scripts\Movement\Core\JumpController.cs" />
     <Compile Include="Assets\Scripts\Events\EventBusListener.cs" />
     <Compile Include="Assets\Scripts\Movement\Visuals\FOVEffector.cs" />
+    <Compile Include="Assets\Cool Visual Effects - Part 1\Scripts\EffectManager.cs" />
+    <Compile Include="Assets\Cool Visual Effects - Part 1\Scripts\ConstantRotation.cs" />
     <Compile Include="Assets\Scripts\Events\EventBus.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -1118,6 +1122,10 @@
       <HintPath>D:\Unity\Hub\Editor\6000.3.4f1\Editor\Data\NetStandard\compat\2.1.0\shims\netfx\System.Xml.Serialization.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Unity.VisualEffectGraph.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.VisualEffectGraph.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Unity.RenderPipelines.Core.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Editor.dll</HintPath>
       <Private>False</Private>
@@ -1260,6 +1268,10 @@
     </Reference>
     <Reference Include="Unity.Mathematics">
       <HintPath>Library\ScriptAssemblies\Unity.Mathematics.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.VisualEffectGraph.Runtime">
+      <HintPath>Library\ScriptAssemblies\Unity.VisualEffectGraph.Runtime.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.RenderPipelines.Universal.Shaders">
