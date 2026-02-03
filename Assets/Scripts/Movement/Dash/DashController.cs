@@ -18,6 +18,8 @@ public class DashController : MonoBehaviour
 
     Rigidbody rb;
     float nextDashAllowedTime = -Mathf.Infinity;
+    float cooldownReadyTime = -Mathf.Infinity;
+    bool cooldownActive;
 
     const int RequiredTapCount = 2;
     float lastTapTime = -Mathf.Infinity;
@@ -75,6 +77,17 @@ public class DashController : MonoBehaviour
         }
     }
 
+    void Update()
+    {
+        if (!cooldownActive || Time.time < cooldownReadyTime)
+        {
+            return;
+        }
+
+        cooldownActive = false;
+        EventBus.Publish(new OnDashCooldownFinishedEvent(cooldownReadyTime, dashCooldown));
+    }
+
     bool ExecuteDash(Vector2 inputDirection)
     {
         if (movementController == null || rb == null || Time.time < nextDashAllowedTime)
@@ -98,7 +111,14 @@ public class DashController : MonoBehaviour
 
         movementController.TemporarilySetMovementState(MovementController.MovementState.Dashing, dashDuration);
         nextDashAllowedTime = Time.time + dashCooldown;
+        cooldownReadyTime = nextDashAllowedTime;
+        cooldownActive = dashCooldown > 0f;
         EventBus.Publish(new OnDashEvent(dashDirection, dashStrength, dashDuration));
+
+        if (!cooldownActive)
+        {
+            EventBus.Publish(new OnDashCooldownFinishedEvent(cooldownReadyTime, dashCooldown));
+        }
         return true;
     }
 }

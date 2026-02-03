@@ -66,12 +66,16 @@
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
     <Compile Include="Assets\Scripts\Events\IEvent.cs" />
     <Compile Include="Assets\Scripts\Movement\Core\MovementController.cs" />
+    <Compile Include="Assets\Scripts\Events\OnDashCooldownFinishedEvent.cs" />
     <Compile Include="Assets\Scripts\Movement\Core\JumpController.cs" />
     <Compile Include="Assets\Scripts\Audio\DashFmodSfx.cs" />
+    <Compile Include="Assets\Scripts\Audio\FallingSound.cs" />
     <Compile Include="Assets\Scripts\Events\EventBusListener.cs" />
     <Compile Include="Assets\Scripts\Movement\Visuals\FOVEffector.cs" />
     <Compile Include="Assets\Cool Visual Effects - Part 1\Scripts\EffectManager.cs" />
+    <Compile Include="Assets\Scripts\Events\GroundedChangedEvent.cs" />
     <Compile Include="Assets\Cool Visual Effects - Part 1\Scripts\ConstantRotation.cs" />
+    <Compile Include="Assets\Scripts\Audio\DashCooldownFmodSfx.cs" />
     <Compile Include="Assets\Scripts\Events\EventBus.cs" />
   </ItemGroup>
   <ItemGroup>

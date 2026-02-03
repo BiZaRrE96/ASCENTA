@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using ASCENTA.Events;
 
 public class Groundcheck : MonoBehaviour
 {
@@ -31,6 +32,8 @@ public class Groundcheck : MonoBehaviour
             ? Physics.SphereCast(origin, radius, direction, out hit, sweepDistance, groundMask, QueryTriggerInteraction.Ignore)
             : Physics.Raycast(origin, direction, out hit, distance, groundMask, QueryTriggerInteraction.Ignore);
 
+        bool groundedChanged = groundedNow != wasGrounded;
+
         if (groundedNow && !wasGrounded)
         {
             OnLanded?.Invoke();
@@ -41,10 +44,15 @@ public class Groundcheck : MonoBehaviour
         }
 
         IsGrounded = groundedNow;
-        wasGrounded = groundedNow;
-
         GroundNormal = groundedNow ? hit.normal : transform.up;
         GroundCollider = groundedNow ? hit.collider : null;
+
+        if (groundedChanged)
+        {
+            EventBus.Publish(new GroundedChangedEvent(IsGrounded, GroundNormal, GroundCollider));
+        }
+
+        wasGrounded = groundedNow;
     }
 
     void OnDrawGizmos()
