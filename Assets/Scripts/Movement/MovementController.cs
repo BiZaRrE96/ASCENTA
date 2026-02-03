@@ -22,15 +22,23 @@ public class MovementController : MonoBehaviour
 
     [SerializeField] bool lockForwardToLook;
 
-    [SerializeField] float accel = 12f;
-    [SerializeField] float maxAccel = 20f;
-    [SerializeField] float ungroundedMult = 0.6f;
+    [Header("Movement Properties")]
+    [SerializeField] float baseMaxSpeed = 6f;
+    [SerializeField] float baseAcceleration = 12f;
+    [SerializeField] float baseTurnAcceleration = 18f;
+    [SerializeField] float baseDamping = 10f;
 
-    [SerializeField] float deccelBonus = 0.3f;
-    [SerializeField] float intentDeadzone = 0.01f;
-
-    [Header("State")]
-    [SerializeField] float airborneUngroundedMult = 0.1f;
+    [Header("Traction")]
+    [SerializeField, Tooltip("Surface traction multiplies acceleration and turning responsiveness.")]
+    float defaultTraction = 1f;
+    [SerializeField, Tooltip("Surface damping multiplies braking authority when no input is supplied.")]
+    float defaultSurfaceDamping = 1f;
+    [SerializeField, Min(0f)]
+    float tractionLerpSpeed = 10f;
+    [SerializeField, Min(0f)]
+    float dampingLerpSpeed = 10f;
+    [SerializeField, Range(0f, 1f)]
+    float airControlMultiplier = 0.3f;
 
     [Header("Snap")]
     [SerializeField] float snapMoveDuration = 0.25f;
@@ -47,10 +55,19 @@ public class MovementController : MonoBehaviour
     Coroutine temporaryMovementStateCoroutine;
 
     MovementState movementState = MovementState.Default;
+    float currentTraction;
+    float currentSurfaceDamping;
+
+    public float CurrentTraction => currentTraction;
+    public float CurrentSurfaceDamping => currentSurfaceDamping;
+    public bool IsGrounded => groundcheck != null && groundcheck.IsGrounded;
+    public Vector3 GroundNormal => groundcheck != null ? groundcheck.GroundNormal : Vector3.up;
     float movementStateLockUntil;
 
     private Vector3 moveIntent;
     private Vector2 moveInput;
+
+    public float Velocity => rb.linearVelocity.magnitude;
 
     float lookPitch;
     float lookYaw;
@@ -84,6 +101,9 @@ public class MovementController : MonoBehaviour
             lookYaw = NormalizeSignedAngle(initialEuler.y);
             look.localEulerAngles = new Vector3(lookPitch, lookYaw, 0f);
         }
+
+        currentTraction = defaultTraction;
+        currentSurfaceDamping = defaultSurfaceDamping;
     }
 
     void OnLook(InputValue value)
@@ -164,24 +184,76 @@ public class MovementController : MonoBehaviour
 
         UpdateAutoMovementState();
 
-        if (moveIntent.sqrMagnitude <= 0f)
+        float deltaTime = Time.fixedDeltaTime;
+        bool grounded = groundcheck != null && groundcheck.IsGrounded;
+        Vector3 planeNormal = grounded ? groundcheck.GroundNormal : Vector3.up;
+        Collider groundCollider = grounded ? groundcheck.GroundCollider : null;
+
+        float targetTraction = defaultTraction;
+        float targetDamping = defaultSurfaceDamping;
+        if (grounded && groundCollider != null)
         {
-            return;
+            GroundSurface surface = groundCollider.GetComponent<GroundSurface>() ?? groundCollider.GetComponentInParent<GroundSurface>();
+            if (surface != null)
+            {
+                targetTraction = surface.traction;
+                targetDamping = surface.damping;
+            }
         }
 
-        Vector3 velocity = rb.linearVelocity;
-        float currentSpeed = Vector3.Dot(velocity, moveIntent);
-        float maxAllowedAccel = (maxAccel - currentSpeed) / Time.fixedDeltaTime;
-        float appliedAccel = Mathf.Clamp(maxAllowedAccel, 0f, accel);
-        if (groundcheck != null && !groundcheck.IsGrounded)
+        currentTraction = Mathf.MoveTowards(currentTraction, targetTraction, tractionLerpSpeed * deltaTime);
+        currentSurfaceDamping = Mathf.MoveTowards(currentSurfaceDamping, targetDamping, dampingLerpSpeed * deltaTime);
+
+        Vector3 lateralVelocity = Vector3.ProjectOnPlane(rb.linearVelocity, planeNormal);
+
+        Vector3 inputDirection = Vector3.zero;
+        if (moveIntent.sqrMagnitude > Mathf.Epsilon)
         {
-            float mult = movementState == MovementState.Airborne ? airborneUngroundedMult : ungroundedMult;
-            appliedAccel *= mult;
+            inputDirection = Vector3.ProjectOnPlane(moveIntent, planeNormal);
+            if (inputDirection.sqrMagnitude > Mathf.Epsilon)
+            {
+                inputDirection = inputDirection.normalized;
+            }
         }
 
-        Vector3 adjustedIntent = movementState == MovementState.Airborne ? moveIntent : ApplyDecelAdjust(moveIntent, velocity);
+        bool hasInput = inputDirection.sqrMagnitude > Mathf.Epsilon;
+        Vector3 velocityChange = Vector3.zero;
 
-        rb.AddForce(adjustedIntent * appliedAccel, ForceMode.Acceleration);
+        if (hasInput)
+        {
+            // Traction controls how quickly we accelerate and redirect toward the intended velocity.
+            Vector3 desiredVelocity = inputDirection * baseMaxSpeed;
+            Vector3 deltaVelocity = desiredVelocity - lateralVelocity;
+
+            float tractionModifier = currentTraction;
+            if (!grounded)
+            {
+                tractionModifier *= airControlMultiplier;
+            }
+
+            float accelLimit = baseAcceleration * tractionModifier;
+            float turnLimit = baseTurnAcceleration * tractionModifier;
+
+            Vector3 forwardComponent = inputDirection.sqrMagnitude > Mathf.Epsilon
+                ? Vector3.Project(deltaVelocity, inputDirection)
+                : deltaVelocity;
+            Vector3 orthogonalComponent = deltaVelocity - forwardComponent;
+
+            velocityChange += Vector3.ClampMagnitude(forwardComponent, accelLimit * deltaTime);
+            velocityChange += Vector3.ClampMagnitude(orthogonalComponent, turnLimit * deltaTime);
+        }
+        else if (grounded)
+        {
+            // Damping/braking slows the player when no input is provided.
+            float brakingLimit = baseDamping * currentSurfaceDamping;
+            Vector3 braking = -Vector3.ClampMagnitude(lateralVelocity, brakingLimit * deltaTime);
+            velocityChange += braking;
+        }
+
+        if (velocityChange.sqrMagnitude > Mathf.Epsilon)
+        {
+            rb.AddForce(velocityChange, ForceMode.VelocityChange);
+        }
     }
 
     void UpdateMoveIntent()
@@ -198,40 +270,6 @@ public class MovementController : MonoBehaviour
         moveIntent = desired;
     }
 
-    Vector3 ApplyDecelAdjust(Vector3 intent, Vector3 velocity)
-    {
-        Vector3 forwardDir = forward != null ? forward.forward : transform.forward;
-        Vector3 rightDir = forward != null ? forward.right : transform.right;
-
-        float intentForward = Vector3.Dot(intent, forwardDir);
-        float intentRight = Vector3.Dot(intent, rightDir);
-        float velForward = Vector3.Dot(velocity, forwardDir);
-        float velRight = Vector3.Dot(velocity, rightDir);
-
-        bool forwardIdle = IsNearZero(intentForward);
-        bool rightIdle = IsNearZero(intentRight);
-
-        if (forwardIdle && Mathf.Abs(velForward) > 0f)
-        {
-            intentForward = -Mathf.Sign(velForward) * deccelBonus;
-        }
-        else if (intentForward * velForward < 0f)
-        {
-            intentForward *= 1f + deccelBonus;
-        }
-
-        if (rightIdle && Mathf.Abs(velRight) > 0f)
-        {
-            intentRight = -Mathf.Sign(velRight) * deccelBonus;
-        }
-        else if (intentRight * velRight < 0f)
-        {
-            intentRight *= 1f + deccelBonus;
-        }
-
-        return forwardDir * intentForward + rightDir * intentRight;
-    }
-
     static float NormalizeSignedAngle(float angle)
     {
         if (angle > 180f)
@@ -240,11 +278,6 @@ public class MovementController : MonoBehaviour
         }
 
         return angle;
-    }
-
-    bool IsNearZero(float value)
-    {
-        return Mathf.Abs(value) <= intentDeadzone;
     }
 
     void UpdateAutoMovementState()

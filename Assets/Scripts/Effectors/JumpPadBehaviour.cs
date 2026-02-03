@@ -57,6 +57,9 @@ public class JumpPadBehaviour : MonoBehaviour
 
     void ApplyBoost(Rigidbody rb)
     {
+        rb.angularVelocity = Vector3.zero;
+        rb.linearVelocity = Vector3.zero;
+
         Vector3 boostDirection = GetBoostDirection();
         float mass = Mathf.Max(rb.mass, 0.01f);
         float impulseMagnitude = boostForce * (scaleForceByMass ? mass : 1f);
