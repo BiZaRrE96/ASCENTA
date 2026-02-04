@@ -46,6 +46,7 @@ public class MovementController : MonoBehaviour
     [SerializeField] float snapMaxDuration = 2f;
     [SerializeField] float snapCompletionDistance = 0.05f;
     [SerializeField] float snapCompletionAngle = 2f;
+    [SerializeField] AnimationCurve snapCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
     
     [Header("Dash State")]
     [SerializeField, Tooltip("If enabled, gravity is temporarily disabled while MovementState is Dashing.")]
@@ -391,13 +392,8 @@ public class MovementController : MonoBehaviour
         temporaryMovementStateCoroutine = null;
     }
 
-    public void SnapTo(Transform target, bool rotate, float rotationSpeed)
+    public void SnapTo(Vector3 targetPosition, float snapTime, Quaternion? rotationTarget = null)
     {
-        if (target == null)
-        {
-            return;
-        }
-
         bool shouldRestoreInput = externalInputAllowed;
         if (snapCoroutine != null)
         {
@@ -419,51 +415,58 @@ public class MovementController : MonoBehaviour
             rb.angularVelocity = Vector3.zero;
         }
 
-        snapCoroutine = StartCoroutine(SnapRoutine(target, rotate, rotationSpeed));
+        snapCoroutine = StartCoroutine(SnapRoutine(targetPosition, snapTime, rotationTarget));
     }
 
-    IEnumerator SnapRoutine(Transform target, bool rotate, float rotationSpeed)
+    public void SnapTo(Transform target, float snapTime, bool shouldRotate)
     {
-        float duration = Mathf.Max(0.001f, snapMoveDuration);
-        duration = Mathf.Min(duration, snapMaxDuration);
-        float moveSpeed = Vector3.Distance(GetCurrentPosition(), target.position) / duration;
-        float elapsed = 0f;
+        if (target == null)
+        {
+            return;
+        }
 
-        while (elapsed < snapMaxDuration)
+        Quaternion? rotationTarget = shouldRotate ? target.rotation : (Quaternion?)null;
+        SnapTo(target.position, snapTime, rotationTarget);
+    }
+
+    IEnumerator SnapRoutine(Vector3 targetPosition, float snapTime, Quaternion? rotationTarget)
+    {
+        float duration = Mathf.Max(0.001f, snapTime > 0f ? snapTime : snapMoveDuration);
+        duration = Mathf.Min(duration, snapMaxDuration);
+        float elapsed = 0f;
+        Vector3 startPosition = GetCurrentPosition();
+        Quaternion startLookRotation = GetCurrentLookRotation();
+
+        while (elapsed < duration)
         {
             Vector3 currentPosition = GetCurrentPosition();
-            Vector3 targetPosition = target.position;
             bool positionReached = Vector3.SqrMagnitude(currentPosition - targetPosition) <= snapCompletionDistance * snapCompletionDistance;
-            bool rotationReached = !rotate || Quaternion.Angle(transform.rotation, target.rotation) <= snapCompletionAngle;
+            bool rotationReached = !rotationTarget.HasValue || Quaternion.Angle(transform.rotation, rotationTarget.Value) <= snapCompletionAngle;
 
             if (positionReached && rotationReached)
             {
                 break;
             }
 
-            if (moveSpeed > 0f)
-            {
-                Vector3 nextPosition = Vector3.MoveTowards(currentPosition, targetPosition, moveSpeed * Time.fixedDeltaTime);
-                MoveToPosition(nextPosition);
-            }
-            else
-            {
-                MoveToPosition(targetPosition);
-            }
+            float normalizedTime = Mathf.Clamp01(elapsed / duration);
+            float curveTime = snapCurve != null ? snapCurve.Evaluate(normalizedTime) : normalizedTime;
+            Vector3 nextPosition = Vector3.LerpUnclamped(startPosition, targetPosition, curveTime);
+            MoveToPosition(nextPosition);
 
-            if (rotate)
+            if (rotationTarget.HasValue)
             {
-                ApplyRotationTowards(target.rotation, rotationSpeed);
+                Quaternion nextRotation = Quaternion.SlerpUnclamped(startLookRotation, rotationTarget.Value, curveTime);
+                ApplyLookRotation(nextRotation);
             }
 
             yield return new WaitForFixedUpdate();
             elapsed += Time.fixedDeltaTime;
         }
 
-        MoveToPosition(target.position);
-        if (rotate)
+        MoveToPosition(targetPosition);
+        if (rotationTarget.HasValue)
         {
-            MoveToRotation(target.rotation);
+            ApplyLookRotation(rotationTarget.Value);
         }
 
         CompleteSnap();
@@ -498,16 +501,33 @@ public class MovementController : MonoBehaviour
         }
     }
 
-    void ApplyRotationTowards(Quaternion targetRotation, float rotationSpeed)
+    Quaternion GetCurrentLookRotation()
     {
-        if (rotationSpeed <= 0f)
+        if (look != null)
         {
-            MoveToRotation(targetRotation);
+            return look.rotation;
+        }
+
+        return transform.rotation;
+    }
+
+    void ApplyLookRotation(Quaternion worldTargetRotation)
+    {
+        if (look == null)
+        {
             return;
         }
 
-        Quaternion nextRotation = Quaternion.RotateTowards(transform.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime);
-        MoveToRotation(nextRotation);
+        Quaternion localTarget = look.parent != null
+            ? Quaternion.Inverse(look.parent.rotation) * worldTargetRotation
+            : worldTargetRotation;
+
+        Vector3 targetEuler = localTarget.eulerAngles;
+        float targetPitch = NormalizeSignedAngle(targetEuler.x);
+        float targetYaw = NormalizeSignedAngle(targetEuler.y);
+        float pitchDelta = targetPitch - lookPitch;
+        float yawDelta = targetYaw - lookYaw;
+        rotateLook(pitchDelta, yawDelta);
     }
 
     void ClearMovementIntent()

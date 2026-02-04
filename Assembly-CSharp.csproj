@@ -53,12 +53,14 @@
     <Compile Include="Assets\Scripts\Movement\Visuals\DashFOVEffector.cs" />
     <Compile Include="Assets\Scripts\Movement\Visuals\CameraFOVEffector.cs" />
     <Compile Include="Assets\Scripts\Events\OnJumpPadBoostEvent.cs" />
+    <Compile Include="Assets\Scripts\Events\PreJumpCalculationEvent.cs" />
     <Compile Include="Assets\Scripts\Time\TutorialTimeStopTrigger.cs" />
     <Compile Include="Assets\Scripts\Effectors\JumpPadBehaviour.cs" />
     <Compile Include="Assets\Scripts\Audio\MusicPlayer.cs" />
     <Compile Include="Assets\Scripts\Movement\Dash\DashController.cs" />
     <Compile Include="Assets\Scripts\Debug\GroundDebugDisplay.cs" />
     <Compile Include="Assets\Scripts\Movement\Core\GroundSurface.cs" />
+    <Compile Include="Assets\Scripts\Undo\UndoProcess.cs" />
     <Compile Include="Assets\Scripts\Audio\JumppadSFX.cs" />
     <Compile Include="Assets\Scripts\Debug\TextVelocity.cs" />
     <Compile Include="Assets\Scripts\Movement\Core\Groundcheck.cs" />
@@ -78,6 +80,7 @@
     <Compile Include="Assets\Scripts\Movement\Visuals\FOVEffector.cs" />
     <Compile Include="Assets\Cool Visual Effects - Part 1\Scripts\EffectManager.cs" />
     <Compile Include="Assets\Scripts\Events\GroundedChangedEvent.cs" />
+    <Compile Include="Assets\Scripts\Undo\LastJumpTracker.cs" />
     <Compile Include="Assets\Cool Visual Effects - Part 1\Scripts\ConstantRotation.cs" />
     <Compile Include="Assets\Scripts\Audio\DashCooldownFmodSfx.cs" />
     <Compile Include="Assets\Scripts\Events\EventBus.cs" />

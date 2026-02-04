@@ -1,3 +1,4 @@
+using ASCENTA.Events;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -142,6 +143,8 @@ public class JumpController : MonoBehaviour
         {
             return false;
         }
+
+        EventBus.Publish(new PreJumpCalculationEvent());
 
         Vector3 up = transform.up;
         Vector3 velocity = rb.linearVelocity;
