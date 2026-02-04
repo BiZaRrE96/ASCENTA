@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="ParameterPreset" id="{b77fe75a-14cc-43b1-8b13-f4e87cebc514}">
+		<property name="name">
+			<value>Global_Highpass</value>
+		</property>
+		<relationship name="folder">
+			<destination>{60eccda7-7193-4350-92b1-fa049f1aa2d5}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{4ad47c48-2937-465f-96cf-3733b10b14ec}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{4ad47c48-2937-465f-96cf-3733b10b14ec}">
+		<property name="isGlobal">
+			<value>true</value>
+		</property>
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+		<property name="isExposedRecursively">
+			<value>false</value>
+		</property>
+	</object>
+</objects>

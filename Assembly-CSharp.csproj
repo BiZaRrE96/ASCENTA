@@ -63,8 +63,11 @@
     <Compile Include="Assets\Scripts\Undo\UndoProcess.cs" />
     <Compile Include="Assets\Scripts\Audio\JumppadSFX.cs" />
     <Compile Include="Assets\Scripts\Debug\TextVelocity.cs" />
+    <Compile Include="Assets\Scripts\Audio\UndoFmodSfx.cs" />
     <Compile Include="Assets\Scripts\Movement\Core\Groundcheck.cs" />
+    <Compile Include="Assets\Scripts\Events\OnUndoEvent.cs" />
     <Compile Include="Assets\Scripts\Events\OnDashEvent.cs" />
+    <Compile Include="Assets\Scripts\Events\OnUndoBeganEvent.cs" />
     <Compile Include="Assets\Scripts\Time\TimeController.cs" />
     <Compile Include="Assets\Scripts\Movement\Visuals\DashVignetteEffect.cs" />
     <Compile Include="Assets\Scripts\Movement\Visuals\VelocityFOVEffector.cs" />
@@ -79,6 +82,7 @@
     <Compile Include="Assets\Scripts\Events\EventBusListener.cs" />
     <Compile Include="Assets\Scripts\Movement\Visuals\FOVEffector.cs" />
     <Compile Include="Assets\Cool Visual Effects - Part 1\Scripts\EffectManager.cs" />
+    <Compile Include="Assets\Scripts\Movement\Visuals\UndoVignetteEffect.cs" />
     <Compile Include="Assets\Scripts\Events\GroundedChangedEvent.cs" />
     <Compile Include="Assets\Scripts\Undo\LastJumpTracker.cs" />
     <Compile Include="Assets\Cool Visual Effects - Part 1\Scripts\ConstantRotation.cs" />

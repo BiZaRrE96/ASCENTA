@@ -13,11 +13,14 @@ public sealed class TutorialTimeStopTrigger : MonoBehaviour
     [SerializeField, Min(0f), Tooltip("Seconds after the trigger fires before the trigger can fire again.")]
     float gracePeriod = 1f;
 
+    [SerializeField] GameObject tutorialObject;
+
     Collider triggerCollider;
     float nextAllowedTriggerTime;
     bool hasTriggered;
     bool isEffectActive;
     Collider activePlayerCollider;
+
 
     void Awake()
     {
@@ -55,6 +58,7 @@ public sealed class TutorialTimeStopTrigger : MonoBehaviour
         }
 
         TimeController.Instance.EnterSlowMotion(slowMotionScale);
+        showTutorial();
         isEffectActive = true;
         activePlayerCollider = other;
         nextAllowedTriggerTime = Time.time + gracePeriod;
@@ -80,6 +84,7 @@ public sealed class TutorialTimeStopTrigger : MonoBehaviour
         }
 
         TimeController.Instance.ResumeNormalTime();
+        hideTutorial();
         nextAllowedTriggerTime = Time.time + gracePeriod;
     }
 
@@ -122,6 +127,22 @@ public sealed class TutorialTimeStopTrigger : MonoBehaviour
         if (singleUse)
         {
             hasTriggered = true;
+        }
+    }
+
+    void showTutorial()
+    {
+        if (tutorialObject)
+        {
+            tutorialObject.SetActive(true);
+        }
+    }
+
+    void hideTutorial()
+    {
+        if (tutorialObject)
+        {
+            tutorialObject.SetActive(false);
         }
     }
 }

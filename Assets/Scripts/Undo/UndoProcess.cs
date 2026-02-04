@@ -1,4 +1,5 @@
 
+using ASCENTA.Events;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -85,6 +86,7 @@ public sealed class UndoProcess : MonoBehaviour
         }
 
         undoInProgress = true;
+        EventBus.Publish(new OnUndoBeganEvent());
         movementController.SetPlayerInputAllowed(false);
         lastJumpTracker.PauseRecording();
 
@@ -124,6 +126,7 @@ public sealed class UndoProcess : MonoBehaviour
             return;
         }
 
+        EventBus.Publish(new OnUndoEvent());
         RestoreState();
         undoInProgress = false;
     }
