@@ -86,6 +86,7 @@ public sealed class UndoProcess : MonoBehaviour
 
         undoInProgress = true;
         movementController.SetPlayerInputAllowed(false);
+        lastJumpTracker.PauseRecording();
 
         if (rb != null)
         {
@@ -95,9 +96,16 @@ public sealed class UndoProcess : MonoBehaviour
             rb.detectCollisions = false;
         }
 
-        Quaternion? rotationTarget = rotateToTarget ? lastJumpTracker.LastRotation : (Quaternion?)null;
-        Vector3 nudge = -lastJumpTracker.LastVelocity * Time.unscaledDeltaTime * snapReverseMult;
-        Vector3 targetPosition = lastJumpTracker.LastPosition + nudge;
+        if (!lastJumpTracker.TryPop(out LastJumpTracker.LastJumpPosition jump))
+        {
+            RestoreState();
+            undoInProgress = false;
+            return;
+        }
+
+        Quaternion? rotationTarget = rotateToTarget ? jump.Rotation : (Quaternion?)null;
+        Vector3 nudge = -jump.Velocity * Time.unscaledDeltaTime * snapReverseMult;
+        Vector3 targetPosition = jump.Position + nudge;
         targetPosition = ResolveTargetWithGroundCheck(targetPosition, nudge, maxNudgeAttempts);
 
         if (postSnapUpOffset > 0f)
@@ -130,6 +138,11 @@ public sealed class UndoProcess : MonoBehaviour
         if (movementController != null)
         {
             movementController.SetPlayerInputAllowed(true);
+        }
+
+        if (lastJumpTracker != null)
+        {
+            lastJumpTracker.ResumeRecording();
         }
     }
 
