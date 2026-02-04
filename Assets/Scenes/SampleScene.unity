@@ -1405,15 +1405,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3204d7f65febb347aca916cd9593cb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LastJumpTracker
-  autoSubscribe: 1
   player: {fileID: 683478620}
-  facingTransform: {fileID: 628637725}
-  snapTarget: {fileID: 0}
-  groundMask:
-    serializedVersion: 2
-    m_Bits: 128
-  groundProbeDistance: 0.5
-  reverseDistance: 0.15
+  facingTransform: {fileID: 802419194}
+  rb: {fileID: 683478618}
+  eventMergeWindow: 0.15
 --- !u!4 &470800774
 Transform:
   m_ObjectHideFlags: 0
@@ -1926,6 +1921,30 @@ MonoBehaviour:
   snapMaxDuration: 2
   snapCompletionDistance: 0.05
   snapCompletionAngle: 2
+  snapCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   ignoreGravityDuringDash: 1
 --- !u!54 &683478618
 Rigidbody:
@@ -2101,8 +2120,14 @@ MonoBehaviour:
   rb: {fileID: 683478618}
   lastJumpTracker: {fileID: 470800773}
   rotateToTarget: 1
-  rotationSpeed: 540
-  postSnapUpOffset: 0.3
+  snapTime: 0.5
+  postSnapUpOffset: 0.75
+  snapReverseMult: 1.4
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  groundCheckDistance: 1.2
+  maxNudgeAttempts: 3
 --- !u!1 &760086440
 GameObject:
   m_ObjectHideFlags: 0
@@ -4437,7 +4462,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Groundcheck
   checkDistance: 0.2
-  checkRadius: 0.1
+  checkRadius: 0
   groundMask:
     serializedVersion: 2
     m_Bits: 128
