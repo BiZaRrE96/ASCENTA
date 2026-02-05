@@ -22,6 +22,8 @@ public class MovementController : MonoBehaviour
     [SerializeField] float lookSensitivity = 0.15f;
 
     [SerializeField] bool lockForwardToLook;
+    [SerializeField] bool moveWithPlatformUsingMovePosition = true;
+    [SerializeField] bool disableGravityWhenOnMovingPlatform = true;
 
     [Header("Movement Properties")]
     [SerializeField] float baseMaxSpeed = 6f;
@@ -78,6 +80,7 @@ public class MovementController : MonoBehaviour
 
     float lookPitch;
     float lookYaw;
+    MovingPlatform subscribedMovingPlatform;
 
     void Awake()
     {
@@ -116,6 +119,11 @@ public class MovementController : MonoBehaviour
         {
             defaultUseGravity = rb.useGravity;
         }
+    }
+
+    void OnDisable()
+    {
+        UnsubscribeFromCurrentMovingPlatform();
     }
 
     void OnLook(InputValue value)
@@ -194,14 +202,19 @@ public class MovementController : MonoBehaviour
             return;
         }
 
-        UpdateGravityState();
-
         UpdateAutoMovementState();
 
         float deltaTime = Time.fixedDeltaTime;
         bool grounded = groundcheck != null && groundcheck.IsGrounded;
         Vector3 planeNormal = grounded ? groundcheck.GroundNormal : Vector3.up;
         Collider groundCollider = grounded ? groundcheck.GroundCollider : null;
+        MovingPlatform movingPlatform = grounded && groundCollider != null
+            ? groundCollider.GetComponentInParent<MovingPlatform>()
+            : null;
+        UpdateMovingPlatformSubscription(movingPlatform);
+
+        bool groundedOnMovingPlatform = grounded && movingPlatform != null;
+        UpdateGravityState(groundedOnMovingPlatform);
 
         float targetTraction = defaultTraction;
         float targetDamping = defaultSurfaceDamping;
@@ -289,14 +302,15 @@ public class MovementController : MonoBehaviour
         return desired;
     }
 
-    void UpdateGravityState()
+    void UpdateGravityState(bool groundedOnMovingPlatform)
     {
         if (rb == null)
         {
             return;
         }
 
-        bool shouldIgnoreGravity = ignoreGravityDuringDash && movementState == MovementState.Dashing;
+        bool shouldIgnoreGravity = (ignoreGravityDuringDash && movementState == MovementState.Dashing)
+            || (disableGravityWhenOnMovingPlatform && groundedOnMovingPlatform);
         if (shouldIgnoreGravity)
         {
             if (rb.useGravity)
@@ -556,5 +570,50 @@ public class MovementController : MonoBehaviour
     bool IsPlayerInputAllowed()
     {
         return externalInputAllowed && !snapInputLocked;
+    }
+
+    void UpdateMovingPlatformSubscription(MovingPlatform movingPlatform)
+    {
+        if (!moveWithPlatformUsingMovePosition)
+        {
+            UnsubscribeFromCurrentMovingPlatform();
+            return;
+        }
+
+        if (subscribedMovingPlatform == movingPlatform)
+        {
+            return;
+        }
+
+        UnsubscribeFromCurrentMovingPlatform();
+
+        if (movingPlatform == null)
+        {
+            return;
+        }
+
+        subscribedMovingPlatform = movingPlatform;
+        subscribedMovingPlatform.OnDeltaMoved += MoveWithPlatformDelta;
+    }
+
+    void UnsubscribeFromCurrentMovingPlatform()
+    {
+        if (subscribedMovingPlatform == null)
+        {
+            return;
+        }
+
+        subscribedMovingPlatform.OnDeltaMoved -= MoveWithPlatformDelta;
+        subscribedMovingPlatform = null;
+    }
+
+    public void MoveWithPlatformDelta(Vector3 movementDelta)
+    {
+        if (rb == null || movementDelta.sqrMagnitude <= Mathf.Epsilon)
+        {
+            return;
+        }
+
+        rb.MovePosition(rb.position + movementDelta);
     }
 }

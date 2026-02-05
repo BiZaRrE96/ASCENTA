@@ -82,6 +82,7 @@
     <Compile Include="Assets\Scripts\Events\EventBusListener.cs" />
     <Compile Include="Assets\Scripts\Movement\Visuals\FOVEffector.cs" />
     <Compile Include="Assets\Cool Visual Effects - Part 1\Scripts\EffectManager.cs" />
+    <Compile Include="Assets\Scripts\Movement\Core\MovingPlatform.cs" />
     <Compile Include="Assets\Scripts\Movement\Visuals\UndoVignetteEffect.cs" />
     <Compile Include="Assets\Scripts\Events\GroundedChangedEvent.cs" />
     <Compile Include="Assets\Scripts\Undo\LastJumpTracker.cs" />
