@@ -1874,6 +1874,7 @@ MonoBehaviour:
   look: {fileID: 628637725}
   forward: {fileID: 802419194}
   groundcheck: {fileID: 2134510702}
+  movementStateController: {fileID: 0}
   maxLookYDeg: 179
   lookSensitivity: 0.15
   lockForwardToLook: 1
@@ -4068,7 +4069,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 1
-  m_Interpolate: 1
+  m_Interpolate: 2
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!1 &1793699162
@@ -4834,6 +4835,7 @@ MonoBehaviour:
   groundMask:
     serializedVersion: 2
     m_Bits: 128
+  movingPlatformEffectBlockWindow: 0.1
   showGizmos: 1
   groundedGizmoColor: {r: 0, g: 1, b: 0, a: 0.7}
   ungroundedGizmoColor: {r: 1, g: 0, b: 0, a: 0.7}

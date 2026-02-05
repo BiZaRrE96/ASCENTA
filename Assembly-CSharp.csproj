@@ -57,6 +57,7 @@
     <Compile Include="Assets\Scripts\Time\TutorialTimeStopTrigger.cs" />
     <Compile Include="Assets\Scripts\Effectors\JumpPadBehaviour.cs" />
     <Compile Include="Assets\Scripts\Audio\MusicPlayer.cs" />
+    <Compile Include="Assets\Scripts\Movement\Core\MovementStateController.cs" />
     <Compile Include="Assets\Scripts\Movement\Dash\DashController.cs" />
     <Compile Include="Assets\Scripts\Debug\GroundDebugDisplay.cs" />
     <Compile Include="Assets\Scripts\Movement\Core\GroundSurface.cs" />
@@ -85,6 +86,7 @@
     <Compile Include="Assets\Scripts\Movement\Core\MovingPlatform.cs" />
     <Compile Include="Assets\Scripts\Movement\Visuals\UndoVignetteEffect.cs" />
     <Compile Include="Assets\Scripts\Events\GroundedChangedEvent.cs" />
+    <Compile Include="Assets\Scripts\Movement\Core\MovementState.cs" />
     <Compile Include="Assets\Scripts\Undo\LastJumpTracker.cs" />
     <Compile Include="Assets\Cool Visual Effects - Part 1\Scripts\ConstantRotation.cs" />
     <Compile Include="Assets\Scripts\Audio\DashCooldownFmodSfx.cs" />

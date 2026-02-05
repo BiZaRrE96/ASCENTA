@@ -5,17 +5,11 @@ using UnityEngine.InputSystem;
 
 public class MovementController : MonoBehaviour
 {
-    public enum MovementState
-    {
-        Default,
-        Airborne,
-        Dashing
-    }
-
     [SerializeField] Rigidbody rb;
     [SerializeField] Transform look;
     [SerializeField] Transform forward;
     [SerializeField] Groundcheck groundcheck;
+    [SerializeField] MovementStateController movementStateController;
 
     //Configs
     [SerializeField] float maxLookYDeg = 179f;
@@ -62,9 +56,7 @@ public class MovementController : MonoBehaviour
     bool snapInputLocked;
     bool pendingSnapShouldRestoreInput;
     Coroutine snapCoroutine;
-    Coroutine temporaryMovementStateCoroutine;
 
-    MovementState movementState = MovementState.Default;
     float currentTraction;
     float currentSurfaceDamping;
     bool defaultUseGravity = true;
@@ -73,7 +65,6 @@ public class MovementController : MonoBehaviour
     public float CurrentSurfaceDamping => currentSurfaceDamping;
     public bool IsGrounded => groundcheck != null && groundcheck.IsGrounded;
     public Vector3 GroundNormal => groundcheck != null ? groundcheck.GroundNormal : Vector3.up;
-    float movementStateLockUntil;
 
     private Vector3 moveIntent;
     private Vector2 moveInput;
@@ -84,6 +75,13 @@ public class MovementController : MonoBehaviour
     float lookYaw;
     MovingPlatform subscribedMovingPlatform;
     Vector3 lastPlatformDelta;
+    bool hasBufferedLandingAdjustment;
+    Vector3 bufferedLandingHitPoint;
+    Vector3 bufferedLandingDelta;
+    bool hasBufferedLandingDelta;
+    MovingPlatform bufferedLandingPlatform;
+    int fixedUpdateStep;
+    int applyLandingAdjustmentAtStep;
 
     void Awake()
     {
@@ -105,6 +103,10 @@ public class MovementController : MonoBehaviour
         if (groundcheck == null)
         {
             groundcheck = GetComponentInChildren<Groundcheck>();
+        }
+        if (movementStateController == null)
+        {
+            movementStateController = GetComponent<MovementStateController>();
         }
 
         if (look != null)
@@ -220,7 +222,7 @@ public class MovementController : MonoBehaviour
             return;
         }
 
-        UpdateAutoMovementState();
+        fixedUpdateStep++;
 
         float deltaTime = Time.fixedDeltaTime;
         bool grounded = groundcheck != null && groundcheck.IsGrounded;
@@ -228,6 +230,7 @@ public class MovementController : MonoBehaviour
         Collider groundCollider = grounded ? groundcheck.GroundCollider : null;
         MovingPlatform movingPlatform = groundcheck != null ? groundcheck.CurrentMovingPlatform : null;
         UpdateMovingPlatformSubscription(movingPlatform);
+        ApplyBufferedLandingAdjustmentIfNeeded();
 
         bool groundedOnMovingPlatform = groundcheck != null && groundcheck.IsGroundedOnMovingPlatform;
         UpdateGravityState(groundedOnMovingPlatform);
@@ -325,7 +328,7 @@ public class MovementController : MonoBehaviour
             return;
         }
 
-        bool shouldIgnoreGravity = (ignoreGravityDuringDash && movementState == MovementState.Dashing)
+        bool shouldIgnoreGravity = (ignoreGravityDuringDash && CurrentMovementState == MovementState.Dashing)
             || (disableGravityWhenOnMovingPlatform && groundedOnMovingPlatform);
         if (shouldIgnoreGravity)
         {
@@ -350,25 +353,9 @@ public class MovementController : MonoBehaviour
         return angle;
     }
 
-    void UpdateAutoMovementState()
-    {
-        if (groundcheck == null)
-        {
-            return;
-        }
-
-        if (!IsMovementStateLocked() && groundcheck.IsGrounded && movementState == MovementState.Airborne)
-        {
-            movementState = MovementState.Default;
-        }
-    }
-
-    bool IsMovementStateLocked()
-    {
-        return Time.time < movementStateLockUntil;
-    }
-
-    public MovementState CurrentMovementState => movementState;
+    public MovementState CurrentMovementState => movementStateController != null
+        ? movementStateController.CurrentState
+        : MovementState.Default;
 
     public void SetPlayerInputAllowed(bool allowed)
     {
@@ -377,49 +364,22 @@ public class MovementController : MonoBehaviour
 
     public void SetMovementState(MovementState targetState, float stateLockIn)
     {
-        if (IsMovementStateLocked() && movementState != targetState)
+        if (movementStateController == null)
         {
             return;
         }
 
-        movementState = targetState;
-        float clampedDuration = Mathf.Max(0f, stateLockIn);
-        movementStateLockUntil = clampedDuration > 0f ? Time.time + clampedDuration : 0f;
+        movementStateController.SetState(targetState, stateLockIn);
     }
 
     public void TemporarilySetMovementState(MovementState targetState, float duration)
     {
-        if (duration <= 0f)
+        if (movementStateController == null)
         {
-            SetMovementState(targetState, duration);
             return;
         }
 
-        if (temporaryMovementStateCoroutine != null)
-        {
-            StopCoroutine(temporaryMovementStateCoroutine);
-            temporaryMovementStateCoroutine = null;
-        }
-
-        temporaryMovementStateCoroutine = StartCoroutine(TemporaryMovementStateRoutine(targetState, duration));
-    }
-
-    IEnumerator TemporaryMovementStateRoutine(MovementState targetState, float duration)
-    {
-        MovementState previousState = movementState;
-        float previousLockUntil = movementStateLockUntil;
-
-        SetMovementState(targetState, duration);
-
-        yield return new WaitForSeconds(duration);
-
-        if (movementState == targetState)
-        {
-            movementState = previousState;
-            movementStateLockUntil = previousLockUntil;
-        }
-
-        temporaryMovementStateCoroutine = null;
+        movementStateController.TemporarilySetState(targetState, duration);
     }
 
     public void SnapTo(Vector3 targetPosition, float snapTime, Quaternion? rotationTarget = null)
@@ -617,12 +577,14 @@ public class MovementController : MonoBehaviour
         if (subscribedMovingPlatform == null)
         {
             lastPlatformDelta = Vector3.zero;
+            ClearBufferedLandingAdjustment();
             return;
         }
 
         subscribedMovingPlatform.OnDeltaMoved -= MoveWithPlatformDelta;
         subscribedMovingPlatform = null;
         lastPlatformDelta = Vector3.zero;
+        ClearBufferedLandingAdjustment();
     }
 
     public void MoveWithPlatformDelta(Vector3 movementDelta)
@@ -633,6 +595,13 @@ public class MovementController : MonoBehaviour
         }
 
         lastPlatformDelta = movementDelta;
+        if (hasBufferedLandingAdjustment)
+        {
+            bufferedLandingDelta = movementDelta;
+            hasBufferedLandingDelta = true;
+            return;
+        }
+
         rb.MovePosition(rb.position + movementDelta);
     }
 
@@ -643,16 +612,12 @@ public class MovementController : MonoBehaviour
             return;
         }
 
-        Vector3 velocity = rb.linearVelocity;
-        if (Mathf.Abs(velocity.y) > Mathf.Epsilon)
-        {
-            velocity.y = 0f;
-            rb.linearVelocity = velocity;
-        }
-
-        Vector3 position = rb.position;
-        position.y = hitPoint.y;
-        rb.MovePosition(position);
+        hasBufferedLandingAdjustment = true;
+        bufferedLandingHitPoint = hitPoint;
+        bufferedLandingPlatform = platform;
+        bufferedLandingDelta = Vector3.zero;
+        hasBufferedLandingDelta = false;
+        applyLandingAdjustmentAtStep = fixedUpdateStep + 1;
     }
 
     void HandleUngrounded()
@@ -675,5 +640,40 @@ public class MovementController : MonoBehaviour
         float fixedDt = Mathf.Max(Time.fixedDeltaTime, Mathf.Epsilon);
         Vector3 velocityDelta = (lastPlatformDelta / fixedDt) * Mathf.Max(0f, ungroundedPlatformDeltaForceMultiplier);
         rb.AddForce(velocityDelta, ForceMode.VelocityChange);
+        ClearBufferedLandingAdjustment();
+    }
+
+    void ApplyBufferedLandingAdjustmentIfNeeded()
+    {
+        if (!hasBufferedLandingAdjustment || fixedUpdateStep < applyLandingAdjustmentAtStep || rb == null)
+        {
+            return;
+        }
+
+        Vector3 deltaToApply = hasBufferedLandingDelta
+            ? bufferedLandingDelta
+            : (bufferedLandingPlatform != null ? bufferedLandingPlatform.FrameDelta : Vector3.zero);
+
+        Vector3 velocity = rb.linearVelocity;
+        if (Mathf.Abs(velocity.y) > Mathf.Epsilon)
+        {
+            velocity.y = 0f;
+            rb.linearVelocity = velocity;
+        }
+
+        Vector3 targetPosition = rb.position + deltaToApply;
+        targetPosition.y = bufferedLandingHitPoint.y + deltaToApply.y;
+        rb.MovePosition(targetPosition);
+
+        ClearBufferedLandingAdjustment();
+    }
+
+    void ClearBufferedLandingAdjustment()
+    {
+        hasBufferedLandingAdjustment = false;
+        hasBufferedLandingDelta = false;
+        bufferedLandingDelta = Vector3.zero;
+        bufferedLandingHitPoint = Vector3.zero;
+        bufferedLandingPlatform = null;
     }
 }

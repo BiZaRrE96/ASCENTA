@@ -199,7 +199,7 @@ public class JumpPadBehaviour : MonoBehaviour
             movementController = rb.GetComponentInChildren<MovementController>();
         }
 
-        movementController?.SetMovementState(MovementController.MovementState.Airborne, Mathf.Max(travelTime, minTravelTime));
+        movementController?.SetMovementState(MovementState.Airborne, Mathf.Max(travelTime, minTravelTime));
     }
 
     Vector3 GetBoostDirection()

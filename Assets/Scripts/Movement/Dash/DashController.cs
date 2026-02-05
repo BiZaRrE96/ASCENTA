@@ -109,7 +109,7 @@ public class DashController : MonoBehaviour
         rb.angularVelocity = Vector3.zero;
         rb.AddForce(dashDirection * dashStrength, ForceMode.VelocityChange);
 
-        movementController.TemporarilySetMovementState(MovementController.MovementState.Dashing, dashDuration);
+        movementController.TemporarilySetMovementState(MovementState.Dashing, dashDuration);
         nextDashAllowedTime = Time.time + dashCooldown;
         cooldownReadyTime = nextDashAllowedTime;
         cooldownActive = dashCooldown > 0f;
