@@ -26,7 +26,6 @@ public class MovementController : MonoBehaviour
     [SerializeField] bool disableGravityWhenOnMovingPlatform = true;
     [SerializeField] bool applyUngroundedPlatformDeltaAsForce = true;
     [SerializeField, Min(0f)] float ungroundedPlatformDeltaForceMultiplier = 1f;
-    [SerializeField, Min(0f)] float movingPlatformSnapAndForceBlockWindow = 0.1f;
 
     [Header("Movement Properties")]
     [SerializeField] float baseMaxSpeed = 6f;
@@ -85,9 +84,6 @@ public class MovementController : MonoBehaviour
     float lookYaw;
     MovingPlatform subscribedMovingPlatform;
     Vector3 lastPlatformDelta;
-    bool wasGroundedOnMovingPlatform;
-    MovingPlatform lastGroundedMovingPlatform;
-    float movingPlatformBlockUntilTime;
 
     void Awake()
     {
@@ -133,6 +129,7 @@ public class MovementController : MonoBehaviour
         if (groundcheck != null)
         {
             groundcheck.OnUngrounded -= HandleUngrounded;
+            groundcheck.OnMovingPlatformEntered -= HandleMovingPlatformEntered;
         }
 
         UnsubscribeFromCurrentMovingPlatform();
@@ -143,6 +140,7 @@ public class MovementController : MonoBehaviour
         if (groundcheck != null)
         {
             groundcheck.OnUngrounded += HandleUngrounded;
+            groundcheck.OnMovingPlatformEntered += HandleMovingPlatformEntered;
         }
     }
 
@@ -228,14 +226,11 @@ public class MovementController : MonoBehaviour
         bool grounded = groundcheck != null && groundcheck.IsGrounded;
         Vector3 planeNormal = grounded ? groundcheck.GroundNormal : Vector3.up;
         Collider groundCollider = grounded ? groundcheck.GroundCollider : null;
-        MovingPlatform movingPlatform = grounded && groundCollider != null
-            ? groundCollider.GetComponentInParent<MovingPlatform>()
-            : null;
+        MovingPlatform movingPlatform = groundcheck != null ? groundcheck.CurrentMovingPlatform : null;
         UpdateMovingPlatformSubscription(movingPlatform);
 
-        bool groundedOnMovingPlatform = grounded && movingPlatform != null;
+        bool groundedOnMovingPlatform = groundcheck != null && groundcheck.IsGroundedOnMovingPlatform;
         UpdateGravityState(groundedOnMovingPlatform);
-        HandleMovingPlatformGrounding(groundedOnMovingPlatform, movingPlatform);
 
         float targetTraction = defaultTraction;
         float targetDamping = defaultSurfaceDamping;
@@ -342,42 +337,6 @@ public class MovementController : MonoBehaviour
         else if (rb.useGravity != defaultUseGravity)
         {
             rb.useGravity = defaultUseGravity;
-        }
-    }
-
-    void HandleMovingPlatformGrounding(bool groundedOnMovingPlatform, MovingPlatform movingPlatform)
-    {
-        bool enteredMovingPlatform = groundedOnMovingPlatform
-            && (!wasGroundedOnMovingPlatform || movingPlatform != lastGroundedMovingPlatform);
-
-        if (enteredMovingPlatform)
-        {
-            bool blockWindowActive = Time.time < movingPlatformBlockUntilTime;
-            if (!blockWindowActive && rb != null && groundcheck != null)
-            {
-                Vector3 velocity = rb.linearVelocity;
-                if (Mathf.Abs(velocity.y) > Mathf.Epsilon)
-                {
-                    velocity.y = 0f;
-                    rb.linearVelocity = velocity;
-                }
-
-                Vector3 position = rb.position;
-                position.y = groundcheck.GroundHitPoint.y;
-                rb.MovePosition(position);
-            }
-
-            movingPlatformBlockUntilTime = Time.time + Mathf.Max(0f, movingPlatformSnapAndForceBlockWindow);
-        }
-
-        wasGroundedOnMovingPlatform = groundedOnMovingPlatform;
-        if (groundedOnMovingPlatform)
-        {
-            lastGroundedMovingPlatform = movingPlatform;
-        }
-        else
-        {
-            lastGroundedMovingPlatform = null;
         }
     }
 
@@ -677,6 +636,25 @@ public class MovementController : MonoBehaviour
         rb.MovePosition(rb.position + movementDelta);
     }
 
+    void HandleMovingPlatformEntered(MovingPlatform platform, Vector3 hitPoint, bool entryBlocked)
+    {
+        if (rb == null || platform == null || entryBlocked)
+        {
+            return;
+        }
+
+        Vector3 velocity = rb.linearVelocity;
+        if (Mathf.Abs(velocity.y) > Mathf.Epsilon)
+        {
+            velocity.y = 0f;
+            rb.linearVelocity = velocity;
+        }
+
+        Vector3 position = rb.position;
+        position.y = hitPoint.y;
+        rb.MovePosition(position);
+    }
+
     void HandleUngrounded()
     {
         if (!applyUngroundedPlatformDeltaAsForce || rb == null || subscribedMovingPlatform == null)
@@ -684,7 +662,7 @@ public class MovementController : MonoBehaviour
             return;
         }
 
-        if (Time.time < movingPlatformBlockUntilTime)
+        if (groundcheck != null && groundcheck.IsMovingPlatformEffectBlocked)
         {
             return;
         }

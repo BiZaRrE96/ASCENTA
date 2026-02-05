@@ -7,18 +7,24 @@ public class Groundcheck : MonoBehaviour
     [SerializeField, Min(0f)] float checkDistance = 0.3f;
     [SerializeField, Min(0f)] float checkRadius = 0.15f;
     [SerializeField] LayerMask groundMask;
+    [SerializeField, Min(0f)] float movingPlatformEffectBlockWindow = 0.1f;
     [SerializeField] bool showGizmos = true;
     [SerializeField] Color groundedGizmoColor = new Color(0f, 1f, 0f, 0.7f);
     [SerializeField] Color ungroundedGizmoColor = new Color(1f, 0f, 0f, 0.7f);
 
     public bool IsGrounded { get; private set; }
+    public bool IsGroundedOnMovingPlatform => IsGrounded && CurrentMovingPlatform != null;
+    public bool IsMovingPlatformEffectBlocked => Time.time < movingPlatformEffectBlockUntilTime;
     public Vector3 GroundNormal { get; private set; } = Vector3.up;
     public Vector3 GroundHitPoint { get; private set; }
     public Collider GroundCollider { get; private set; }
+    public MovingPlatform CurrentMovingPlatform { get; private set; }
     public event Action OnLanded;
     public event Action OnUngrounded;
+    public event Action<MovingPlatform, Vector3, bool> OnMovingPlatformEntered;
 
     bool wasGrounded;
+    float movingPlatformEffectBlockUntilTime;
 
     void FixedUpdate()
     {
@@ -32,6 +38,13 @@ public class Groundcheck : MonoBehaviour
         bool groundedNow = radius > 0f
             ? Physics.SphereCast(origin, radius, direction, out hit, sweepDistance, groundMask, QueryTriggerInteraction.Ignore)
             : Physics.Raycast(origin, direction, out hit, distance, groundMask, QueryTriggerInteraction.Ignore);
+        MovingPlatform nextMovingPlatform = groundedNow ? hit.collider.GetComponentInParent<MovingPlatform>() : null;
+        bool enteredMovingPlatform = nextMovingPlatform != null && (!wasGrounded || nextMovingPlatform != CurrentMovingPlatform);
+        bool movingPlatformEntryWasBlocked = Time.time < movingPlatformEffectBlockUntilTime;
+        if (enteredMovingPlatform)
+        {
+            movingPlatformEffectBlockUntilTime = Time.time + Mathf.Max(0f, movingPlatformEffectBlockWindow);
+        }
 
         bool groundedChanged = groundedNow != wasGrounded;
 
@@ -48,6 +61,12 @@ public class Groundcheck : MonoBehaviour
         GroundNormal = groundedNow ? hit.normal : transform.up;
         GroundHitPoint = groundedNow ? hit.point : transform.position;
         GroundCollider = groundedNow ? hit.collider : null;
+        CurrentMovingPlatform = nextMovingPlatform;
+
+        if (enteredMovingPlatform)
+        {
+            OnMovingPlatformEntered?.Invoke(nextMovingPlatform, GroundHitPoint, movingPlatformEntryWasBlocked);
+        }
 
         if (groundedChanged)
         {
