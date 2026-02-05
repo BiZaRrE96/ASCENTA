@@ -1879,6 +1879,8 @@ MonoBehaviour:
   lockForwardToLook: 1
   moveWithPlatformUsingMovePosition: 1
   disableGravityWhenOnMovingPlatform: 1
+  applyUngroundedPlatformDeltaAsForce: 1
+  ungroundedPlatformDeltaForceMultiplier: 1
   baseMaxSpeed: 12
   baseAcceleration: 30
   baseTurnAcceleration: 18
@@ -3085,7 +3087,7 @@ Transform:
   m_GameObject: {fileID: 1136164915}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 4, z: 0}
+  m_LocalPosition: {x: 0, y: 2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3980,7 +3982,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -20}
-  m_LocalScale: {x: 4, y: 1, z: 4}
+  m_LocalScale: {x: 8, y: 1, z: 8}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1774210463}
@@ -3997,8 +3999,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ea95912750ac144685be631afcd8564, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GroundSurface
-  traction: 1
-  damping: 1
+  traction: 2
+  damping: 2
 --- !u!114 &1780556525
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4015,8 +4017,8 @@ MonoBehaviour:
   points:
   - {fileID: 1818686245}
   - {fileID: 1136164916}
-  travelTime: 3
-  idleOnPointTime: 2
+  travelTime: 8
+  idleOnPointTime: 4
   movementCurve:
     serializedVersion: 2
     m_Curve:
@@ -4066,7 +4068,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 1
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!1 &1793699162

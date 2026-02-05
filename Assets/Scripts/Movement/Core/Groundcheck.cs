@@ -13,6 +13,7 @@ public class Groundcheck : MonoBehaviour
 
     public bool IsGrounded { get; private set; }
     public Vector3 GroundNormal { get; private set; } = Vector3.up;
+    public Vector3 GroundHitPoint { get; private set; }
     public Collider GroundCollider { get; private set; }
     public event Action OnLanded;
     public event Action OnUngrounded;
@@ -45,6 +46,7 @@ public class Groundcheck : MonoBehaviour
 
         IsGrounded = groundedNow;
         GroundNormal = groundedNow ? hit.normal : transform.up;
+        GroundHitPoint = groundedNow ? hit.point : transform.position;
         GroundCollider = groundedNow ? hit.collider : null;
 
         if (groundedChanged)

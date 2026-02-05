@@ -24,6 +24,9 @@ public class MovementController : MonoBehaviour
     [SerializeField] bool lockForwardToLook;
     [SerializeField] bool moveWithPlatformUsingMovePosition = true;
     [SerializeField] bool disableGravityWhenOnMovingPlatform = true;
+    [SerializeField] bool applyUngroundedPlatformDeltaAsForce = true;
+    [SerializeField, Min(0f)] float ungroundedPlatformDeltaForceMultiplier = 1f;
+    [SerializeField, Min(0f)] float movingPlatformSnapAndForceBlockWindow = 0.1f;
 
     [Header("Movement Properties")]
     [SerializeField] float baseMaxSpeed = 6f;
@@ -81,6 +84,10 @@ public class MovementController : MonoBehaviour
     float lookPitch;
     float lookYaw;
     MovingPlatform subscribedMovingPlatform;
+    Vector3 lastPlatformDelta;
+    bool wasGroundedOnMovingPlatform;
+    MovingPlatform lastGroundedMovingPlatform;
+    float movingPlatformBlockUntilTime;
 
     void Awake()
     {
@@ -123,7 +130,20 @@ public class MovementController : MonoBehaviour
 
     void OnDisable()
     {
+        if (groundcheck != null)
+        {
+            groundcheck.OnUngrounded -= HandleUngrounded;
+        }
+
         UnsubscribeFromCurrentMovingPlatform();
+    }
+
+    void OnEnable()
+    {
+        if (groundcheck != null)
+        {
+            groundcheck.OnUngrounded += HandleUngrounded;
+        }
     }
 
     void OnLook(InputValue value)
@@ -215,6 +235,7 @@ public class MovementController : MonoBehaviour
 
         bool groundedOnMovingPlatform = grounded && movingPlatform != null;
         UpdateGravityState(groundedOnMovingPlatform);
+        HandleMovingPlatformGrounding(groundedOnMovingPlatform, movingPlatform);
 
         float targetTraction = defaultTraction;
         float targetDamping = defaultSurfaceDamping;
@@ -321,6 +342,42 @@ public class MovementController : MonoBehaviour
         else if (rb.useGravity != defaultUseGravity)
         {
             rb.useGravity = defaultUseGravity;
+        }
+    }
+
+    void HandleMovingPlatformGrounding(bool groundedOnMovingPlatform, MovingPlatform movingPlatform)
+    {
+        bool enteredMovingPlatform = groundedOnMovingPlatform
+            && (!wasGroundedOnMovingPlatform || movingPlatform != lastGroundedMovingPlatform);
+
+        if (enteredMovingPlatform)
+        {
+            bool blockWindowActive = Time.time < movingPlatformBlockUntilTime;
+            if (!blockWindowActive && rb != null && groundcheck != null)
+            {
+                Vector3 velocity = rb.linearVelocity;
+                if (Mathf.Abs(velocity.y) > Mathf.Epsilon)
+                {
+                    velocity.y = 0f;
+                    rb.linearVelocity = velocity;
+                }
+
+                Vector3 position = rb.position;
+                position.y = groundcheck.GroundHitPoint.y;
+                rb.MovePosition(position);
+            }
+
+            movingPlatformBlockUntilTime = Time.time + Mathf.Max(0f, movingPlatformSnapAndForceBlockWindow);
+        }
+
+        wasGroundedOnMovingPlatform = groundedOnMovingPlatform;
+        if (groundedOnMovingPlatform)
+        {
+            lastGroundedMovingPlatform = movingPlatform;
+        }
+        else
+        {
+            lastGroundedMovingPlatform = null;
         }
     }
 
@@ -600,11 +657,13 @@ public class MovementController : MonoBehaviour
     {
         if (subscribedMovingPlatform == null)
         {
+            lastPlatformDelta = Vector3.zero;
             return;
         }
 
         subscribedMovingPlatform.OnDeltaMoved -= MoveWithPlatformDelta;
         subscribedMovingPlatform = null;
+        lastPlatformDelta = Vector3.zero;
     }
 
     public void MoveWithPlatformDelta(Vector3 movementDelta)
@@ -614,6 +673,29 @@ public class MovementController : MonoBehaviour
             return;
         }
 
+        lastPlatformDelta = movementDelta;
         rb.MovePosition(rb.position + movementDelta);
+    }
+
+    void HandleUngrounded()
+    {
+        if (!applyUngroundedPlatformDeltaAsForce || rb == null || subscribedMovingPlatform == null)
+        {
+            return;
+        }
+
+        if (Time.time < movingPlatformBlockUntilTime)
+        {
+            return;
+        }
+
+        if (lastPlatformDelta.sqrMagnitude <= Mathf.Epsilon)
+        {
+            return;
+        }
+
+        float fixedDt = Mathf.Max(Time.fixedDeltaTime, Mathf.Epsilon);
+        Vector3 velocityDelta = (lastPlatformDelta / fixedDt) * Mathf.Max(0f, ungroundedPlatformDeltaForceMultiplier);
+        rb.AddForce(velocityDelta, ForceMode.VelocityChange);
     }
 }
