@@ -364,6 +364,13 @@ public class MovementController : MonoBehaviour
         ? movementStateController.CurrentState
         : MovementState.Default;
 
+    public float LookSensitivity => lookSensitivity;
+
+    public void SetLookSensitivity(float sensitivity)
+    {
+        lookSensitivity = sensitivity;
+    }
+
     public void SetPlayerInputAllowed(bool allowed)
     {
         externalInputAllowed = allowed;

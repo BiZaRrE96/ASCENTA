@@ -53,6 +53,7 @@
     <Compile Include="Assets\Scripts\Effectors\JumpPadCollisionBehaviour.cs" />
     <Compile Include="Assets\Scripts\SaveLoad\Data\MovingPlatformData.cs" />
     <Compile Include="Assets\Scripts\Movement\Visuals\DashFOVEffector.cs" />
+    <Compile Include="Assets\Scripts\Config\ConfigData.cs" />
     <Compile Include="Assets\Scripts\Movement\Visuals\CameraFOVEffector.cs" />
     <Compile Include="Assets\Scripts\Events\OnJumpPadBoostEvent.cs" />
     <Compile Include="Assets\Scripts\Events\PreJumpCalculationEvent.cs" />
@@ -73,7 +74,9 @@
     <Compile Include="Assets\Scripts\SaveLoad\IDataPersistence.cs" />
     <Compile Include="Assets\Scripts\Events\OnDashEvent.cs" />
     <Compile Include="Assets\Scripts\Events\OnUndoBeganEvent.cs" />
+    <Compile Include="Assets\Scripts\Bootstrap\SceneLoader.cs" />
     <Compile Include="Assets\Scripts\Time\TimeController.cs" />
+    <Compile Include="Assets\Scripts\Bootstrap\Bootstrap.cs" />
     <Compile Include="Assets\Scripts\SaveLoad\Controller\PlayerDataController.cs" />
     <Compile Include="Assets\Scripts\Movement\Visuals\DashVignetteEffect.cs" />
     <Compile Include="Assets\Scripts\Movement\Visuals\VelocityFOVEffector.cs" />
@@ -85,6 +88,7 @@
     <Compile Include="Assets\Scripts\Movement\Core\MovementController.cs" />
     <Compile Include="Assets\Scripts\Events\OnDashCooldownFinishedEvent.cs" />
     <Compile Include="Assets\Scripts\SaveLoad\Data\GameData.cs" />
+    <Compile Include="Assets\Scripts\Bootstrap\SceneReferenceSO.cs" />
     <Compile Include="Assets\Scripts\SaveLoad\QuickSaveLoad.cs" />
     <Compile Include="Assets\Scripts\Movement\Core\JumpController.cs" />
     <Compile Include="Assets\Scripts\SaveLoad\DataPersistenceManager.cs" />
@@ -94,6 +98,7 @@
     <Compile Include="Assets\Scripts\Movement\Visuals\FOVEffector.cs" />
     <Compile Include="Assets\Cool Visual Effects - Part 1\Scripts\EffectManager.cs" />
     <Compile Include="Assets\Scripts\Movement\Core\MovingPlatform.cs" />
+    <Compile Include="Assets\Scripts\Bootstrap\ConfigWorker.cs" />
     <Compile Include="Assets\Scripts\Movement\Visuals\UndoVignetteEffect.cs" />
     <Compile Include="Assets\Scripts\Events\GroundedChangedEvent.cs" />
     <Compile Include="Assets\Scripts\Movement\Core\MovementState.cs" />
