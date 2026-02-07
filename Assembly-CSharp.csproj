@@ -99,6 +99,7 @@
     <Compile Include="Assets\Cool Visual Effects - Part 1\Scripts\ConstantRotation.cs" />
     <Compile Include="Assets\Scripts\SaveLoad\FileDataHandler.cs" />
     <Compile Include="Assets\Scripts\Audio\DashCooldownFmodSfx.cs" />
+    <Compile Include="Assets\Scripts\Animations\RandomRotator.cs" />
     <Compile Include="Assets\Scripts\Events\EventBus.cs" />
   </ItemGroup>
   <ItemGroup>

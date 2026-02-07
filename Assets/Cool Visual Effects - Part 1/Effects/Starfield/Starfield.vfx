@@ -20,7 +20,7 @@ MonoBehaviour:
     x: -165
     y: -133
     width: 1530
-    height: 1575
+    height: 1617
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -59,22 +59,6 @@ MonoBehaviour:
   m_UIInfos: {fileID: 114340500867371532}
   m_CustomAttributes: []
   m_ParameterInfo:
-  - name: Spawn rate
-    path: Spawn rate
-    tooltip: 
-    space: -1
-    spaceable: 0
-    sheetType: m_Float
-    realType: Single
-    defaultValue:
-      m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 300
-    min: -Infinity
-    max: Infinity
-    enumValues: []
-    descendantCount: 0
   - name: Min circle radius
     path: Min circle radius
     tooltip: 
@@ -121,6 +105,22 @@ MonoBehaviour:
       m_SerializableObject: 18
     min: -Infinity
     max: Infinity
+    enumValues: []
+    descendantCount: 0
+  - name: Spawn rate
+    path: Spawn rate
+    tooltip: 
+    space: -1
+    spaceable: 0
+    sheetType: m_Float
+    realType: Single
+    defaultValue:
+      m_Type:
+        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
+          PublicKeyToken=b77a5c561934e089
+      m_SerializableObject: 300
+    min: 5
+    max: 500
     enumValues: []
     descendantCount: 0
   - name: Line width
@@ -879,7 +879,7 @@ MonoBehaviour:
   enableRayTracing: 0
   decimationFactor: 1
   raytracedScaleMode: 0
-  needsOwnSort: 0
+  needsOwnSort: 1
   needsOwnAabbBuffer: 0
   useTargetOffset: 1
   useNativeLines: 0
@@ -1071,7 +1071,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614699}
   m_ExposedName: Min circle radius
   m_Exposed: 1
-  m_Order: 1
+  m_Order: 0
   m_Category: 
   m_Min:
     m_Type:
@@ -1152,7 +1152,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614701}
   m_ExposedName: Max circle radius
   m_Exposed: 1
-  m_Order: 2
+  m_Order: 1
   m_Category: 
   m_Min:
     m_Type:
@@ -1242,7 +1242,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614703}
   m_ExposedName: Speed
   m_Exposed: 1
-  m_Order: 3
+  m_Order: 2
   m_Category: 
   m_Min:
     m_Type:
@@ -2204,7 +2204,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614731}
   m_ExposedName: Spawn rate
   m_Exposed: 1
-  m_Order: 0
+  m_Order: 3
   m_Category: 
   m_Min:
     m_Type:
@@ -2545,7 +2545,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 5
+      m_SerializableObject: 1
     m_Space: -1
   m_Property:
     name: _Lifetime
