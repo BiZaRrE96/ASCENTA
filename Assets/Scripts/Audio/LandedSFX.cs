@@ -19,6 +19,10 @@ public sealed class LandedSFX : EventBusListener<GroundedChangedEvent>
     [SerializeField] Rigidbody rb;
 
     bool warnedMissingEvent;
+    readonly float[] recentSpeeds = new float[20];
+    int recentSpeedCount;
+    int recentSpeedIndex;
+    bool isAirborne;
 
     protected override void Awake()
     {
@@ -34,6 +38,7 @@ public sealed class LandedSFX : EventBusListener<GroundedChangedEvent>
     {
         if (!eventData.IsGrounded)
         {
+            StartAirborneTracking();
             return;
         }
 
@@ -49,6 +54,8 @@ public sealed class LandedSFX : EventBusListener<GroundedChangedEvent>
 
         float intensity = CalculateIntensity(eventData);
         PlayWithIntensity(intensity);
+        ClearRecentSpeeds();
+        isAirborne = false;
     }
 
     float CalculateIntensity(GroundedChangedEvent eventData)
@@ -58,18 +65,7 @@ public sealed class LandedSFX : EventBusListener<GroundedChangedEvent>
             return 1f;
         }
 
-        Vector3 velocity = rb != null ? rb.linearVelocity : Vector3.zero;
-        float speed;
-
-        if (useVerticalSpeed)
-        {
-            Vector3 normal = eventData.GroundNormal.sqrMagnitude > Mathf.Epsilon ? eventData.GroundNormal : Vector3.up;
-            speed = Mathf.Abs(Vector3.Dot(velocity, -normal.normalized));
-        }
-        else
-        {
-            speed = velocity.magnitude;
-        }
+        float speed = GetMaxRecentSpeed(eventData);
 
         return Mathf.Clamp01(speed / terminalVelocity);
     }
@@ -90,5 +86,70 @@ public sealed class LandedSFX : EventBusListener<GroundedChangedEvent>
 
         instance.start();
         instance.release();
+    }
+
+    void Update()
+    {
+        if (!isAirborne || rb == null)
+        {
+            return;
+        }
+
+        float speed = CalculateSpeed(rb.linearVelocity, Vector3.up);
+        RecordRecentSpeed(speed);
+    }
+
+    void StartAirborneTracking()
+    {
+        ClearRecentSpeeds();
+        isAirborne = true;
+    }
+
+    void ClearRecentSpeeds()
+    {
+        recentSpeedCount = 0;
+        recentSpeedIndex = 0;
+    }
+
+    void RecordRecentSpeed(float speed)
+    {
+        recentSpeeds[recentSpeedIndex] = speed;
+        recentSpeedIndex = (recentSpeedIndex + 1) % recentSpeeds.Length;
+        if (recentSpeedCount < recentSpeeds.Length)
+        {
+            recentSpeedCount++;
+        }
+    }
+
+    float GetMaxRecentSpeed(GroundedChangedEvent eventData)
+    {
+        if (recentSpeedCount <= 0)
+        {
+            Vector3 fallbackVelocity = rb != null ? rb.linearVelocity : Vector3.zero;
+            Vector3 normal = eventData.GroundNormal.sqrMagnitude > Mathf.Epsilon ? eventData.GroundNormal : Vector3.up;
+            return CalculateSpeed(fallbackVelocity, normal);
+        }
+
+        float maxSpeed = 0f;
+        for (int i = 0; i < recentSpeedCount; i++)
+        {
+            if (recentSpeeds[i] > maxSpeed)
+            {
+                maxSpeed = recentSpeeds[i];
+            }
+        }
+
+        return maxSpeed;
+    }
+
+    float CalculateSpeed(Vector3 velocity, Vector3 groundNormal)
+    {
+        if (useVerticalSpeed)
+        {
+            Vector3 normal = groundNormal.sqrMagnitude > Mathf.Epsilon ? groundNormal : Vector3.up;
+            return Mathf.Abs(Vector3.Dot(velocity, -normal.normalized));
+        }
+
+        return velocity.magnitude;
     }
 }

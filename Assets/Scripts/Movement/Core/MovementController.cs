@@ -148,7 +148,7 @@ public class MovementController : MonoBehaviour
 
     void OnLook(InputValue value)
     {
-        if (!IsPlayerInputAllowed())
+        if (!IsLookInputAllowed())
         {
             return;
         }
@@ -198,7 +198,7 @@ public class MovementController : MonoBehaviour
 
     void OnMove(InputValue value)
     {
-        if (!IsPlayerInputAllowed())
+        if (!IsMovementInputAllowed())
         {
             moveInput = Vector2.zero;
             UpdateMoveIntent();
@@ -304,6 +304,13 @@ public class MovementController : MonoBehaviour
 
     void UpdateMoveIntent()
     {
+        if (!IsMovementInputAllowed())
+        {
+            moveInput = Vector2.zero;
+            moveIntent = Vector3.zero;
+            return;
+        }
+
         moveIntent = ConvertMoveInputToWorld(moveInput);
     }
 
@@ -543,7 +550,12 @@ public class MovementController : MonoBehaviour
         OnSnapCompleted?.Invoke();
     }
 
-    bool IsPlayerInputAllowed()
+    public bool IsMovementInputAllowed()
+    {
+        return externalInputAllowed && !snapInputLocked && CurrentMovementState != MovementState.Cutscene;
+    }
+
+    bool IsLookInputAllowed()
     {
         return externalInputAllowed && !snapInputLocked;
     }

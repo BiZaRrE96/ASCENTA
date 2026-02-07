@@ -8,7 +8,7 @@ public sealed class FallingSound : EventBusListener<GroundedChangedEvent>
 {
     [Header("FMOD")]
     [SerializeField] EventReference fallingEvent;
-    [SerializeField] string intensityParameter = "Intensity";
+    [SerializeField] string intensityParameter = "Falling_Intensity";
     [SerializeField] bool attachToGameObject = true;
 
     [Header("Timing")]
@@ -27,6 +27,9 @@ public sealed class FallingSound : EventBusListener<GroundedChangedEvent>
     float ungroundedTime;
     bool warnedMissingEvent;
     bool instanceValid;
+    bool parameterChecked;
+    bool parameterIsGlobal;
+    FMOD.Studio.PARAMETER_DESCRIPTION parameterDescription;
 
     protected override void Awake()
     {
@@ -102,7 +105,27 @@ public sealed class FallingSound : EventBusListener<GroundedChangedEvent>
         float intensityCap = Mathf.Clamp01(timeToMaxIntensityCurve.Evaluate(normalizedTime));
         float intensity = Mathf.Clamp01(Mathf.Min(velocityFactor, intensityCap));
 
-        fallingInstance.setParameterByName(intensityParameter, intensity);
+        if (!parameterChecked)
+        {
+            parameterChecked = true;
+            if (!string.IsNullOrEmpty(intensityParameter))
+            {
+                FMOD.RESULT result = RuntimeManager.StudioSystem.getParameterDescriptionByName(intensityParameter, out parameterDescription);
+                if (result == FMOD.RESULT.OK)
+                {
+                    parameterIsGlobal = (parameterDescription.flags & FMOD.Studio.PARAMETER_FLAGS.GLOBAL) != 0;
+                }
+            }
+        }
+
+        if (parameterIsGlobal)
+        {
+            RuntimeManager.StudioSystem.setParameterByID(parameterDescription.id, intensity);
+        }
+        else
+        {
+            fallingInstance.setParameterByName(intensityParameter, intensity);
+        }
     }
 
     void StopInstance()

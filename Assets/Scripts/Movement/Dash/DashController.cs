@@ -48,6 +48,11 @@ public class DashController : MonoBehaviour
 
     void OnMoveTap(InputValue value)
     {
+        if (movementController == null || !movementController.IsMovementInputAllowed())
+        {
+            return;
+        }
+
         Vector2 rawInput = value.Get<Vector2>();
         if (rawInput.sqrMagnitude < 0.001f)
         {
@@ -91,6 +96,11 @@ public class DashController : MonoBehaviour
     bool ExecuteDash(Vector2 inputDirection)
     {
         if (movementController == null || rb == null || Time.time < nextDashAllowedTime)
+        {
+            return false;
+        }
+
+        if (!movementController.IsMovementInputAllowed())
         {
             return false;
         }
