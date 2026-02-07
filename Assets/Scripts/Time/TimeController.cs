@@ -1,3 +1,4 @@
+using ASCENTA.Events;
 using UnityEngine;
 
 /// <summary>
@@ -14,10 +15,45 @@ public sealed class TimeController : MonoBehaviour
     float originalTimeScale = 1f;
     float originalFixedDeltaTime = 0.02f;
     bool isSlowMotionActive;
+    float realTime;
 
     public static TimeController Instance => instance;
     public float SlowMotionTimeScale => slowMotionTimeScale;
     public bool IsSlowMotionActive => isSlowMotionActive;
+    public float GetRealTime() => realTime;
+    public static float GetBackwardsScale(float targetTime, float currentTime, float reversalPeriod)
+    {
+        if (reversalPeriod <= Mathf.Epsilon)
+        {
+            return 0f;
+        }
+
+        if (currentTime <= targetTime)
+        {
+            return 0f;
+        }
+
+        float fixedStep = Mathf.Max(Time.fixedDeltaTime, Mathf.Epsilon);
+        int stepCount = Mathf.Max(1, Mathf.CeilToInt(reversalPeriod / fixedStep));
+        float delta = targetTime - currentTime;
+        return delta / stepCount;
+    }
+
+    void HandleUndoBegan(OnUndoBeganEvent eventData)
+    {
+        float reversalFixedDelta = GetBackwardsScale(eventData.Jump.Time, realTime, eventData.SnapTime);
+        RaiseReversalEvent(true, reversalFixedDelta);
+    }
+
+    void HandleUndoCompleted(OnUndoEvent _)
+    {
+        RaiseReversalEvent(false, 0f);
+    }
+
+    void RaiseReversalEvent(bool isReversing, float reversalFixedDelta)
+    {
+        EventBus.Publish(new ReversalEvent(isReversing, reversalFixedDelta));
+    }
 
     void Awake()
     {
@@ -32,6 +68,24 @@ public sealed class TimeController : MonoBehaviour
 
         originalTimeScale = Time.timeScale;
         originalFixedDeltaTime = Mathf.Max(Time.fixedDeltaTime, MinTimeScale);
+        realTime = 0f;
+    }
+
+    void OnEnable()
+    {
+        EventBus.Subscribe<OnUndoBeganEvent>(HandleUndoBegan);
+        EventBus.Subscribe<OnUndoEvent>(HandleUndoCompleted);
+    }
+
+    void OnDisable()
+    {
+        EventBus.Unsubscribe<OnUndoBeganEvent>(HandleUndoBegan);
+        EventBus.Unsubscribe<OnUndoEvent>(HandleUndoCompleted);
+    }
+
+    void Update()
+    {
+        realTime += Time.deltaTime;
     }
 
     void OnDestroy()

@@ -7,16 +7,18 @@ public sealed class LastJumpTracker : MonoBehaviour
 {
     public readonly struct LastJumpPosition
     {
-        public LastJumpPosition(Vector3 position, Quaternion rotation, Vector3 velocity)
+        public LastJumpPosition(Vector3 position, Quaternion rotation, Vector3 velocity, float time)
         {
             Position = position;
             Rotation = rotation;
             Velocity = velocity;
+            Time = time;
         }
 
         public Vector3 Position { get; }
         public Quaternion Rotation { get; }
         public Vector3 Velocity { get; }
+        public float Time { get; }
     }
 
     [Header("References")]
@@ -40,6 +42,7 @@ public sealed class LastJumpTracker : MonoBehaviour
     Vector3 lastPosition;
     Quaternion lastRotation = Quaternion.identity;
     Vector3 lastVelocity;
+    float lastTime;
 
     public bool HasJumpData => jumpStack.Count > 0;
     public int JumpCount => jumpStack.Count;
@@ -130,6 +133,7 @@ public sealed class LastJumpTracker : MonoBehaviour
         Quaternion rotation = facingTransform != null ? facingTransform.rotation : player.rotation;
         lastPosition = position;
         lastRotation = rotation;
+        lastTime = GetCurrentScaledTime();
         hasUngroundedPose = true;
         lastUngroundedTime = Time.unscaledTime;
         TryFinalizeJump();
@@ -146,6 +150,7 @@ public sealed class LastJumpTracker : MonoBehaviour
         Quaternion rotation = facingTransform != null ? facingTransform.rotation : player.rotation;
         lastPosition = position;
         lastRotation = rotation;
+        lastTime = GetCurrentScaledTime();
         hasUngroundedPose = true;
         ApplyVelocityFromPreJump();
         TryFinalizeJump();
@@ -193,7 +198,7 @@ public sealed class LastJumpTracker : MonoBehaviour
             return;
         }
 
-        jumpStack.Push(new LastJumpPosition(lastPosition, lastRotation, lastVelocity));
+        jumpStack.Push(new LastJumpPosition(lastPosition, lastRotation, lastVelocity, lastTime));
         hasUngroundedPose = false;
         hasPreJumpVelocity = false;
     }
@@ -219,5 +224,10 @@ public sealed class LastJumpTracker : MonoBehaviour
     public void ResumeRecording()
     {
         recordingEnabled = true;
+    }
+
+    float GetCurrentScaledTime()
+    {
+        return TimeController.Instance != null ? TimeController.Instance.GetRealTime() : Time.time;
     }
 }

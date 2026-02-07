@@ -85,8 +85,15 @@ public sealed class UndoProcess : MonoBehaviour
             return;
         }
 
+        if (!lastJumpTracker.TryPop(out LastJumpTracker.LastJumpPosition jump))
+        {
+            RestoreState();
+            undoInProgress = false;
+            return;
+        }
+
         undoInProgress = true;
-        EventBus.Publish(new OnUndoBeganEvent());
+        EventBus.Publish(new OnUndoBeganEvent(jump, snapTime));
         movementController.SetPlayerInputAllowed(false);
         lastJumpTracker.PauseRecording();
 
@@ -96,13 +103,6 @@ public sealed class UndoProcess : MonoBehaviour
             rb.angularVelocity = Vector3.zero;
             cachedDetectCollisions = rb.detectCollisions;
             rb.detectCollisions = false;
-        }
-
-        if (!lastJumpTracker.TryPop(out LastJumpTracker.LastJumpPosition jump))
-        {
-            RestoreState();
-            undoInProgress = false;
-            return;
         }
 
         Quaternion? rotationTarget = rotateToTarget ? jump.Rotation : (Quaternion?)null;
