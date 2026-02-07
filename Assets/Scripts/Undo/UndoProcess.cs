@@ -37,7 +37,7 @@ public sealed class UndoProcess : MonoBehaviour
 
         if (lastJumpTracker == null)
         {
-            lastJumpTracker = FindObjectOfType<LastJumpTracker>();
+            lastJumpTracker = FindFirstObjectByType<LastJumpTracker>();
         }
     }
 

@@ -94,6 +94,9 @@
 		</relationship>
 	</object>
 	<object class="EventMixerMaster" id="{d7192e62-ce5b-46a1-97ea-e2e06d73eb8e}">
+		<property name="volume">
+			<value>-3</value>
+		</property>
 		<relationship name="modulators">
 			<destination>{43b7b4cb-bec5-4742-9703-e496e7f88176}</destination>
 		</relationship>
@@ -135,6 +138,9 @@
 		</relationship>
 	</object>
 	<object class="EventMixerGroup" id="{f318d6e9-3758-40c1-b3a3-a071b6325f3b}">
+		<property name="volume">
+			<value>-2</value>
+		</property>
 		<property name="name">
 			<value>Audio 1</value>
 		</property>
@@ -218,6 +224,7 @@
 		<relationship name="effects">
 			<destination>{f2d33745-14f4-448e-bc51-dcf97d3b7fe0}</destination>
 			<destination>{a83bc7cc-a4f4-4d63-91e1-419d9df35a65}</destination>
+			<destination>{0e5a07a2-85b5-4138-8de7-503b217ff97f}</destination>
 		</relationship>
 	</object>
 	<object class="MixerBusPanner" id="{225a0121-7737-440e-8e8a-01977c75802c}" />
@@ -249,6 +256,20 @@
 		<relationship name="automators">
 			<destination>{86da29c1-fd29-4f6c-a09f-e8acd366bff8}</destination>
 		</relationship>
+	</object>
+	<object class="MultibandEqEffect" id="{0e5a07a2-85b5-4138-8de7-503b217ff97f}">
+		<property name="filterTypeA">
+			<value>0</value>
+		</property>
+		<property name="filterTypeB">
+			<value>5</value>
+		</property>
+		<property name="frequencyB">
+			<value>46</value>
+		</property>
+		<property name="qualityB">
+			<value>0.199999988</value>
+		</property>
 	</object>
 	<object class="AutomationCurve" id="{3978ee3f-a636-48c6-b904-9b2366d8613a}">
 		<relationship name="parameter">

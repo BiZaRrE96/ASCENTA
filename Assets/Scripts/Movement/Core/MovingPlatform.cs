@@ -205,4 +205,62 @@ public class MovingPlatform : MonoBehaviour
 
         return fallback;
     }
+
+    public MovingPlatformData CaptureSaveState(string platformId)
+    {
+        Vector3 position = rb != null ? rb.position : transform.position;
+        return new MovingPlatformData(
+            platformId,
+            position,
+            GetTransitionProgress(),
+            currentPointIndex,
+            nextPointIndex,
+            isIdling,
+            idleElapsed,
+            travelDirection);
+    }
+
+    public void RestoreSaveState(MovingPlatformData data)
+    {
+        if (data == null)
+        {
+            return;
+        }
+
+        if (rb == null)
+        {
+            rb = GetComponent<Rigidbody>();
+        }
+
+        travelDirection = data.travelDirection == 0 ? 1 : data.travelDirection;
+        currentPointIndex = data.currentPointIndex;
+        nextPointIndex = data.nextPointIndex;
+        isIdling = data.isIdling;
+        idleElapsed = Mathf.Clamp(data.idleElapsed, 0f, idleOnPointTime);
+        moveElapsed = Mathf.Clamp01(data.transitionProgress) * Mathf.Max(0.01f, travelTime);
+
+        Vector3 targetPosition = data.position;
+        previousPosition = targetPosition;
+        FrameDelta = Vector3.zero;
+        DeltaVelocity = Vector3.zero;
+
+        if (rb != null)
+        {
+            rb.MovePosition(targetPosition);
+        }
+        else
+        {
+            transform.position = targetPosition;
+        }
+    }
+
+    float GetTransitionProgress()
+    {
+        if (travelTime <= Mathf.Epsilon)
+        {
+            return 1f;
+        }
+
+        return Mathf.Clamp01(moveElapsed / Mathf.Max(0.01f, travelTime));
+    }
 }
