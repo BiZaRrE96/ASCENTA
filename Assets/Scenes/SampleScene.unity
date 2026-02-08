@@ -1684,6 +1684,7 @@ GameObject:
   - component: {fileID: 683478624}
   - component: {fileID: 683478625}
   - component: {fileID: 683478627}
+  - component: {fileID: 683478628}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -1960,6 +1961,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerDataController
   loadPriority: 0
   playerTransform: {fileID: 683478620}
+  movementController: {fileID: 0}
+  rb: {fileID: 0}
+  colliders: []
 --- !u!114 &683478627
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1972,6 +1976,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: addebbbc3b702294aab3a5d3a01eefe7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QuickSaveLoad
+--- !u!114 &683478628
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 683478616}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb39c313d3e4e054b993ca9828535406, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MovementSettingsUpdater
+  autoSubscribe: 1
+  applyOnEnable: 1
+  fallbackSensitivity: 0.15
 --- !u!1 &761261896
 GameObject:
   m_ObjectHideFlags: 0

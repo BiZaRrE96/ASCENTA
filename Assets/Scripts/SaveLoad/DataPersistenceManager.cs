@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
+using System.Threading.Tasks;
 using ASCENTA.Events;
 using UnityEngine;
 
@@ -41,13 +42,35 @@ public class DataPersistenceManager : MonoBehaviour
         HasSaveData = dataHandler.HasSaveData();
         if (HasSaveData)
         {
-            currentData = dataHandler.Load();
+            StartCoroutine(LoadOnStartAsync());
         }
+    }
+
+    IEnumerator LoadOnStartAsync()
+    {
+        Task<GameData> loadTask = dataHandler.LoadAsync();
+        while (!loadTask.IsCompleted)
+        {
+            yield return null;
+        }
+
+        if (loadTask.IsFaulted)
+        {
+            Debug.LogWarning($"Async load failed: {loadTask.Exception}");
+            currentData = null;
+        }
+        else
+        {
+            currentData = loadTask.Result;
+        }
+
+        EventBus.Publish(new GameDataLoadedEvent(HasSaveData));
     }
 
     public void NewGame()
     {
         currentData = new GameData();
+        EventBus.Publish(new GameDataLoadedEvent(HasSaveData));
     }
 
     public void LoadGame()
@@ -78,8 +101,6 @@ public class DataPersistenceManager : MonoBehaviour
         {
             dataPersistence.LoadDataComplete();
         }
-
-        EventBus.Publish(new GameDataLoadedEvent(HasSaveData));
     }
 
     public void SaveGame()

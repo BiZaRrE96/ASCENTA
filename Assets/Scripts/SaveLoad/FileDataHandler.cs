@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class FileDataHandler
@@ -24,6 +25,33 @@ public class FileDataHandler
         try
         {
             string dataToLoad = File.ReadAllText(fullPath);
+            if (string.IsNullOrWhiteSpace(dataToLoad))
+            {
+                Debug.LogWarning($"Data not found at {fullPath}");
+                return null;
+            }
+
+            return JsonUtility.FromJson<GameData>(dataToLoad);
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"Exception {e}");
+            return null;
+        }
+    }
+
+    public async Task<GameData> LoadAsync()
+    {
+        string fullPath = Path.Combine(dataDirPath, dataFileName);
+        if (!File.Exists(fullPath))
+        {
+            Debug.LogWarning($"File not found at {fullPath}");
+            return null;
+        }
+
+        try
+        {
+            string dataToLoad = await File.ReadAllTextAsync(fullPath).ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(dataToLoad))
             {
                 Debug.LogWarning($"Data not found at {fullPath}");

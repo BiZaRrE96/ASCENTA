@@ -8,8 +8,18 @@ public sealed class SceneLoad : MonoBehaviour
 
     public event Action<string> SceneLoaded;
 
+    [SerializeField] Animator anim;
+    [SerializeField] string transitionStartAnimTrigger = "LoadStart";
+    [SerializeField] string transitionEndAnimTrigger = "LoadComplete";
+
     [SerializeField, Tooltip("Keep this loader alive across scene changes.")]
     bool keepAlive = true;
+
+    bool ignoredFirstAnimationTrigger = false;
+
+    bool hasPendingLoad;
+    string pendingSceneName;
+    int pendingBuildIndex = -1;
 
     void Awake()
     {
@@ -53,7 +63,11 @@ public sealed class SceneLoad : MonoBehaviour
             return;
         }
 
-        SceneManager.LoadScene(sceneName, mode);
+        StartTransitionAnim();
+        hasPendingLoad = true;
+        pendingSceneName = sceneName;
+        pendingBuildIndex = -1;
+        SceneManager.LoadSceneAsync(sceneName, mode);
     }
 
     public void LoadScene(int buildIndex, LoadSceneMode mode = LoadSceneMode.Single)
@@ -64,7 +78,11 @@ public sealed class SceneLoad : MonoBehaviour
             return;
         }
 
-        SceneManager.LoadScene(buildIndex, mode);
+        StartTransitionAnim();
+        hasPendingLoad = true;
+        pendingBuildIndex = buildIndex;
+        pendingSceneName = null;
+        SceneManager.LoadSceneAsync(buildIndex, mode);
     }
 
     public void LoadScene(SceneReferenceSO sceneReference, LoadSceneMode mode = LoadSceneMode.Single)
@@ -87,5 +105,43 @@ public sealed class SceneLoad : MonoBehaviour
     void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         SceneLoaded?.Invoke(scene.name);
+
+        if (!hasPendingLoad)
+        {
+            return;
+        }
+
+        bool matches = (pendingBuildIndex >= 0 && scene.buildIndex == pendingBuildIndex)
+            || (!string.IsNullOrWhiteSpace(pendingSceneName) && scene.name == pendingSceneName);
+        if (!matches)
+        {
+            return;
+        }
+
+        hasPendingLoad = false;
+        pendingBuildIndex = -1;
+        pendingSceneName = null;
+        EndTransitionAnim();
+    }
+
+    public void StartTransitionAnim()
+    {
+        if (!ignoredFirstAnimationTrigger)
+        {
+            ignoredFirstAnimationTrigger = true;
+            return;
+        }
+        if (anim)
+        {
+            anim.SetTrigger(transitionStartAnimTrigger);
+        }
+    }
+
+    public void EndTransitionAnim()
+    {
+        if (anim)
+        {
+            anim.SetTrigger(transitionEndAnimTrigger);
+        }
     }
 }

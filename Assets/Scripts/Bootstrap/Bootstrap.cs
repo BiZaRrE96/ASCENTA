@@ -13,6 +13,7 @@ public class Bootstrap : MonoBehaviour
 
     [Header("References")]
     [SerializeField] ConfigWorker configWorker;
+    [SerializeField] SceneLoad sceneLoad;
 
     static bool hasBootstrapped;
 
@@ -29,6 +30,11 @@ public class Bootstrap : MonoBehaviour
         if (configWorker == null)
         {
             configWorker = FindFirstObjectByType<ConfigWorker>(FindObjectsInactive.Include);
+        }
+
+        if (sceneLoad == null)
+        {
+            sceneLoad = FindFirstObjectByType<SceneLoad>(FindObjectsInactive.Include);
         }
 
         if (keepBootstrapSceneLoaded)
@@ -57,15 +63,28 @@ public class Bootstrap : MonoBehaviour
     {
         if (nextScene != null)
         {
+            LoadSceneMode mode = loadAdditive ? LoadSceneMode.Additive : LoadSceneMode.Single;
             if (nextScene.BuildIndex >= 0)
             {
-                SceneManager.LoadScene(nextScene.BuildIndex, loadAdditive ? LoadSceneMode.Additive : LoadSceneMode.Single);
+                if (sceneLoad == null)
+                {
+                    Debug.LogError("Bootstrap requires a SceneLoad reference to load scenes.", this);
+                    return;
+                }
+
+                sceneLoad.LoadScene(nextScene.BuildIndex, mode);
                 return;
             }
 
             if (!string.IsNullOrWhiteSpace(nextScene.SceneName))
             {
-                SceneManager.LoadScene(nextScene.SceneName, loadAdditive ? LoadSceneMode.Additive : LoadSceneMode.Single);
+                if (sceneLoad == null)
+                {
+                    Debug.LogError("Bootstrap requires a SceneLoad reference to load scenes.", this);
+                    return;
+                }
+
+                sceneLoad.LoadScene(nextScene.SceneName, mode);
                 return;
             }
         }
