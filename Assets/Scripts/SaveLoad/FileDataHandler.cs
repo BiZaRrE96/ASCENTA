@@ -17,6 +17,7 @@ public class FileDataHandler
         string fullPath = Path.Combine(dataDirPath, dataFileName);
         if (!File.Exists(fullPath))
         {
+            Debug.LogWarning($"File not found at {fullPath}");
             return null;
         }
 
@@ -25,14 +26,38 @@ public class FileDataHandler
             string dataToLoad = File.ReadAllText(fullPath);
             if (string.IsNullOrWhiteSpace(dataToLoad))
             {
+                Debug.LogWarning($"Data not found at {fullPath}");
                 return null;
             }
 
             return JsonUtility.FromJson<GameData>(dataToLoad);
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            Debug.LogWarning($"Exception {e}");
             return null;
+        }
+    }
+
+    public bool HasSaveData()
+    {
+        string fullPath = Path.Combine(dataDirPath, dataFileName);
+        if (!File.Exists(fullPath))
+        {
+            Debug.LogWarning($"Doesnt have save at {fullPath}");
+            return false;
+        }
+
+        try
+        {
+            FileInfo fileInfo = new FileInfo(fullPath);
+            Debug.Log($"Data is {fileInfo.Length}");
+            return fileInfo.Length > 0;
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"Exception when reading save : {e}");
+            return false;
         }
     }
 
@@ -48,11 +73,34 @@ public class FileDataHandler
         {
             Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
             string dataToStore = JsonUtility.ToJson(data, true);
-            File.WriteAllText(fullPath, dataToStore);
+            using (FileStream stream = new FileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (StreamWriter writer = new StreamWriter(stream))
+            {
+                writer.Write(dataToStore);
+            }
         }
         catch (Exception)
         {
             // Swallow errors for now; consider logging if needed.
+        }
+    }
+
+    public bool Delete()
+    {
+        string fullPath = Path.Combine(dataDirPath, dataFileName);
+        if (!File.Exists(fullPath))
+        {
+            return false;
+        }
+
+        try
+        {
+            File.Delete(fullPath);
+            return true;
+        }
+        catch (Exception)
+        {
+            return false;
         }
     }
 }

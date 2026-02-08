@@ -28,6 +28,7 @@ public sealed class LastJumpTracker : MonoBehaviour
 
     [Header("Timing")]
     [SerializeField, Min(0f)] float eventMergeWindow = 0.15f;
+    [SerializeField, Min(0f)] float minTimeAfterLanding = 0.15f;
 
     bool hasUngroundedPose;
     bool hasPreJumpVelocity;
@@ -36,6 +37,7 @@ public sealed class LastJumpTracker : MonoBehaviour
     float pendingVelocityTime;
     float lastUngroundedTime = -999f;
     float lastPreJumpTime = -999f;
+    float lastGroundedTime = -999f;
     bool recordingEnabled = true;
 
     readonly System.Collections.Generic.Stack<LastJumpPosition> jumpStack = new System.Collections.Generic.Stack<LastJumpPosition>();
@@ -90,10 +92,15 @@ public sealed class LastJumpTracker : MonoBehaviour
 
         if (eventData.IsGrounded)
         {
+            lastGroundedTime = Time.unscaledTime;
             return;
         }
 
         float now = Time.unscaledTime;
+        if (now - lastGroundedTime < minTimeAfterLanding)
+        {
+            return;
+        }
         if (now - lastPreJumpTime <= eventMergeWindow)
         {
             return;

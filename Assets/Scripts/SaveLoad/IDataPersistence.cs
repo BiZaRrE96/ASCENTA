@@ -17,4 +17,19 @@ public abstract class IDataPersistence : MonoBehaviour
     public virtual void BeforeLoadData() {} // all before load data is called by DataPersistenceManager if implemented
 
     public virtual void LoadDataComplete() {}
+
+    protected virtual void OnEnable()
+    {
+        // if (!Application.isPlaying)
+        // {
+        //     return;
+        // }
+
+        // DataPersistenceManager manager = DataPersistenceManager.Instance;
+        // if (manager != null && manager.HasLoadedData)
+        // {
+        //     // LoadData(manager.CurrentData);
+        //     BeforeLoadData();
+        // }
+    }
 }
