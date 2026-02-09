@@ -14,6 +14,7 @@ public class Bootstrap : MonoBehaviour
     [Header("References")]
     [SerializeField] ConfigWorker configWorker;
     [SerializeField] SceneLoad sceneLoad;
+    [SerializeField] ServiceRegistry serviceRegistry;
 
     static bool hasBootstrapped;
 
@@ -37,6 +38,11 @@ public class Bootstrap : MonoBehaviour
             sceneLoad = FindFirstObjectByType<SceneLoad>(FindObjectsInactive.Include);
         }
 
+        if (serviceRegistry == null)
+        {
+            serviceRegistry = FindFirstObjectByType<ServiceRegistry>(FindObjectsInactive.Include);
+        }
+
         if (keepBootstrapSceneLoaded)
         {
             DontDestroyOnLoad(gameObject);
@@ -55,6 +61,11 @@ public class Bootstrap : MonoBehaviour
         }
 
         yield return null;
+
+        if (serviceRegistry != null && !serviceRegistry.InitialServicesReady)
+        {
+            yield return serviceRegistry.LoadInitialServices();
+        }
 
         LoadNextScene();
     }

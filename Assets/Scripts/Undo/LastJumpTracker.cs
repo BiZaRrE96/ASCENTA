@@ -53,7 +53,7 @@ public sealed class LastJumpTracker : MonoBehaviour
     {
         if (player == null)
         {
-            MovementController movementController = FindObjectOfType<MovementController>();
+            MovementController movementController = FindFirstObjectByType<MovementController>();
             if (movementController != null)
             {
                 player = movementController.transform;
@@ -75,12 +75,14 @@ public sealed class LastJumpTracker : MonoBehaviour
     {
         EventBus.Subscribe<GroundedChangedEvent>(HandleGroundedChanged);
         EventBus.Subscribe<PreJumpCalculationEvent>(HandlePreJumpCalculation);
+        EventBus.Subscribe<IntroCompletedEvent>(HandleIntroCompleted);
     }
 
     void OnDisable()
     {
         EventBus.Unsubscribe<GroundedChangedEvent>(HandleGroundedChanged);
         EventBus.Unsubscribe<PreJumpCalculationEvent>(HandlePreJumpCalculation);
+        EventBus.Unsubscribe<IntroCompletedEvent>(HandleIntroCompleted);
     }
 
     void HandleGroundedChanged(GroundedChangedEvent eventData)
@@ -231,6 +233,19 @@ public sealed class LastJumpTracker : MonoBehaviour
     public void ResumeRecording()
     {
         recordingEnabled = true;
+    }
+
+    void HandleIntroCompleted(IntroCompletedEvent _)
+    {
+        FlushJumpHistory();
+    }
+
+    void FlushJumpHistory()
+    {
+        jumpStack.Clear();
+        hasUngroundedPose = false;
+        hasPreJumpVelocity = false;
+        pendingVelocityFromUngrounded = false;
     }
 
     float GetCurrentScaledTime()

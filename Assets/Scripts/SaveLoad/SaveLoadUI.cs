@@ -140,6 +140,7 @@ public sealed class SaveLoadUI : MonoBehaviour
             yield break;
         }
         manager.NewGame();
+        EventBus.Publish(new GameStartedEvent());
     }
 
     IEnumerator CallLoadGame()
@@ -152,5 +153,6 @@ public sealed class SaveLoadUI : MonoBehaviour
             yield break;
         }
         manager.LoadGame();
+        EventBus.Publish(new GameStartedEvent());
     }
 }

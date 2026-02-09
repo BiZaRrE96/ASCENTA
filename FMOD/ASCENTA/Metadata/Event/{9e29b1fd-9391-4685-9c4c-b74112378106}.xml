@@ -138,9 +138,6 @@
 		</relationship>
 	</object>
 	<object class="EventMixerGroup" id="{f318d6e9-3758-40c1-b3a3-a071b6325f3b}">
-		<property name="volume">
-			<value>-2</value>
-		</property>
 		<property name="name">
 			<value>Audio 1</value>
 		</property>
@@ -332,7 +329,6 @@
 		<relationship name="automationPoints">
 			<destination>{3ddcf277-9f47-430d-a2f5-f293c0621e5f}</destination>
 			<destination>{cb8dd9d2-fc28-49b4-b8b9-98f61099766b}</destination>
-			<destination>{2ba13ecf-c45c-4553-bdda-416b55cf4f88}</destination>
 		</relationship>
 	</object>
 	<object class="AutomationPoint" id="{744a5c65-9177-43c1-adbe-db3dec6d2589}">
@@ -356,7 +352,7 @@
 	</object>
 	<object class="AutomationPoint" id="{3ddcf277-9f47-430d-a2f5-f293c0621e5f}">
 		<property name="position">
-			<value>0.14999999999999999</value>
+			<value>0.30000000000000004</value>
 		</property>
 		<property name="value">
 			<value>0</value>
@@ -367,21 +363,10 @@
 			<value>0</value>
 		</property>
 		<property name="value">
-			<value>-10</value>
+			<value>-7</value>
 		</property>
 		<property name="curveShape">
-			<value>0.385594368</value>
-		</property>
-	</object>
-	<object class="AutomationPoint" id="{2ba13ecf-c45c-4553-bdda-416b55cf4f88}">
-		<property name="position">
-			<value>0.10593220178864735</value>
-		</property>
-		<property name="value">
-			<value>-4</value>
-		</property>
-		<property name="curveShape">
-			<value>-0.375122935</value>
+			<value>-0.412929237</value>
 		</property>
 	</object>
 </objects>

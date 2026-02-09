@@ -1,10 +1,11 @@
+using System.Collections;
 using ASCENTA.Events;
 using UnityEngine;
 
 /// <summary>
 /// Centralizes slow motion control and guarantees a single controller instance.
 /// </summary>
-public sealed class TimeController : MonoBehaviour
+public sealed class TimeController : MonoBehaviour, IService
 {
     [SerializeField, Min(0.01f), Tooltip("Default time scale used when a slow motion effect is requested.")]
     float slowMotionTimeScale = 0.3f;
@@ -16,6 +17,7 @@ public sealed class TimeController : MonoBehaviour
     float originalFixedDeltaTime = 0.02f;
     bool isSlowMotionActive;
     float realTime;
+    bool serviceInitialized;
 
     public static TimeController Instance => instance;
     public float SlowMotionTimeScale => slowMotionTimeScale;
@@ -64,11 +66,22 @@ public sealed class TimeController : MonoBehaviour
         }
 
         instance = this;
-        DontDestroyOnLoad(gameObject);
+        WarnIfNotUnderServiceRegistry();
 
         originalTimeScale = Time.timeScale;
         originalFixedDeltaTime = Mathf.Max(Time.fixedDeltaTime, MinTimeScale);
         realTime = 0f;
+    }
+
+    public IEnumerator InitializeService()
+    {
+        if (serviceInitialized)
+        {
+            yield break;
+        }
+
+        serviceInitialized = true;
+        yield break;
     }
 
     void OnEnable()
@@ -138,5 +151,18 @@ public sealed class TimeController : MonoBehaviour
         Time.timeScale = originalTimeScale;
         Time.fixedDeltaTime = originalFixedDeltaTime;
         isSlowMotionActive = false;
+    }
+
+    void WarnIfNotUnderServiceRegistry()
+    {
+        if (ServiceRegistry.Instance == null)
+        {
+            return;
+        }
+
+        if (!transform.IsChildOf(ServiceRegistry.Instance.transform))
+        {
+            Debug.LogWarning("TimeController is not parented under ServiceRegistry. Consider spawning it via ServiceRegistry.", this);
+        }
     }
 }

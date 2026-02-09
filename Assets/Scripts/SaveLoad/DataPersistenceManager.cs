@@ -6,7 +6,7 @@ using ASCENTA.Events;
 using UnityEngine;
 
 
-public class DataPersistenceManager : MonoBehaviour
+public class DataPersistenceManager : MonoBehaviour, IService
 {
 
     // Singleton setup
@@ -22,6 +22,7 @@ public class DataPersistenceManager : MonoBehaviour
     GameData currentData;
     List<IDataPersistence> dataPersistenceObjects;
     FileDataHandler dataHandler;
+    bool serviceInitialized;
 
     
     void Awake()
@@ -33,16 +34,30 @@ public class DataPersistenceManager : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
+        WarnIfNotUnderServiceRegistry();
     }
 
     private void Start()
     {
+        if (!serviceInitialized)
+        {
+            StartCoroutine(InitializeService());
+        }
+    }
+
+    public IEnumerator InitializeService()
+    {
+        if (serviceInitialized)
+        {
+            yield break;
+        }
+
+        serviceInitialized = true;
         EnsureInitialized();
         HasSaveData = dataHandler.HasSaveData();
         if (HasSaveData)
         {
-            StartCoroutine(LoadOnStartAsync());
+            yield return LoadOnStartAsync();
         }
     }
 
@@ -148,6 +163,19 @@ public class DataPersistenceManager : MonoBehaviour
         if (dataPersistenceObjects == null)
         {
             dataPersistenceObjects = new List<IDataPersistence>();
+        }
+    }
+
+    void WarnIfNotUnderServiceRegistry()
+    {
+        if (ServiceRegistry.Instance == null)
+        {
+            return;
+        }
+
+        if (!transform.IsChildOf(ServiceRegistry.Instance.transform))
+        {
+            Debug.LogWarning("DataPersistenceManager is not parented under ServiceRegistry. Consider spawning it via ServiceRegistry.", this);
         }
     }
 

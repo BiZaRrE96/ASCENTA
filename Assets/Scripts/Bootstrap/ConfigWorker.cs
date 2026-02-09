@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.IO;
 using System.Collections.Generic;
 using FMOD.Studio;
@@ -6,7 +7,7 @@ using FMODUnity;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public sealed class ConfigWorker : MonoBehaviour
+public sealed class ConfigWorker : MonoBehaviour, IService
 {
     [Header("Storage")]
     [SerializeField] string fileName = "config.json";
@@ -32,8 +33,14 @@ public sealed class ConfigWorker : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject);
+        WarnIfNotUnderServiceRegistry();
         EnsureInitialized();
+    }
+
+    public IEnumerator InitializeService()
+    {
+        EnsureInitialized();
+        yield break;
     }
 
     void OnEnable()
@@ -59,6 +66,19 @@ public sealed class ConfigWorker : MonoBehaviour
         CurrentConfig = LoadConfig();
         ApplyConfig(CurrentConfig);
         IsInitialized = true;
+    }
+
+    void WarnIfNotUnderServiceRegistry()
+    {
+        if (ServiceRegistry.Instance == null)
+        {
+            return;
+        }
+
+        if (!transform.IsChildOf(ServiceRegistry.Instance.transform))
+        {
+            Debug.LogWarning("ConfigWorker is not parented under ServiceRegistry. Consider spawning it via ServiceRegistry.", this);
+        }
     }
 
     public void ApplyConfig(ConfigData config)

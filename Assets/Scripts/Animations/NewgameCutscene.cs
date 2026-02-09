@@ -43,6 +43,7 @@ public class NewgameCutscene : EventBusListener<GameStartedEvent>
 
     protected override void OnEvent(GameStartedEvent eventData)
     {
+        Debug.Log("NEWGAMESCENE TRIGGERED");
         TryStartCutscene();
     }
 
@@ -100,8 +101,8 @@ public class NewgameCutscene : EventBusListener<GameStartedEvent>
 
         if (movementController != null)
         {
-            movementController.SetPlayerInputAllowed(false);
-            inputLockedByCutscene = true;
+            //movementController.SetPlayerInputAllowed(false);
+            //inputLockedByCutscene = true;
             movementController.SetMovementState(MovementState.Cutscene, 0f);
         }
 
@@ -113,14 +114,20 @@ public class NewgameCutscene : EventBusListener<GameStartedEvent>
 
     public void AnimationDone()
     {
+        Debug.Log("ANIMATION DONE");
         if (!cutsceneActive)
         {
+            Debug.LogWarning("[ANIMATION DONE] Cutscene is inactive");
             return;
         }
 
         if (startPanel != null && startPanel.activeSelf)
         {
             startPanel.SetActive(false);
+            Debug.Log("Panel disabled");
+        } else
+        {
+            Debug.LogError("Failed to inactivate panel");
         }
 
         SubscribeToGrounded();
@@ -154,6 +161,8 @@ public class NewgameCutscene : EventBusListener<GameStartedEvent>
             return;
         }
 
+        Debug.Log("Ending animation and disabling self...");
+
         UnsubscribeFromGrounded();
         AnimationClosing();
     }
@@ -162,6 +171,7 @@ public class NewgameCutscene : EventBusListener<GameStartedEvent>
     {
         if (!cutsceneActive)
         {
+            Debug.LogWarning("[ANIMATION CLOSING] Cutscene is inactive");
             return;
         }
 
@@ -170,18 +180,15 @@ public class NewgameCutscene : EventBusListener<GameStartedEvent>
         if (movementController != null)
         {
             movementController.SetMovementState(MovementState.Default, 0f);
-            if (inputLockedByCutscene)
-            {
-                movementController.SetPlayerInputAllowed(true);
-                inputLockedByCutscene = false;
-            }
+            // if (inputLockedByCutscene)
+            // {
+            //     movementController.SetPlayerInputAllowed(true);
+            //     inputLockedByCutscene = false;
+            // }
         }
 
         MarkIntroPlayed();
-
-        EventBus.Publish(new IntroUpdateEvent());
         EventBus.Publish(new IntroCompletedEvent());
-
         DisableCutscene();
     }
 
@@ -204,7 +211,8 @@ public class NewgameCutscene : EventBusListener<GameStartedEvent>
         {
             startPanel.SetActive(false);
         }
-        enabled = false;
+        EventBus.Publish(new IntroUpdateEvent());
+        gameObject.SetActive(false);
     }
 
     void ResolvePlayer()

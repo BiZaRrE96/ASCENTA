@@ -71,6 +71,7 @@
     <Compile Include="Assets\Scripts\Events\UIButtonLockEvent.cs" />
     <Compile Include="Assets\Scripts\Audio\JumppadSFX.cs" />
     <Compile Include="Assets\Scripts\Events\ReversalEvent.cs" />
+    <Compile Include="Assets\Scripts\Services\ServiceRegistry.cs" />
     <Compile Include="Assets\Scripts\Debug\TextVelocity.cs" />
     <Compile Include="Assets\Scripts\Audio\UndoFmodSfx.cs" />
     <Compile Include="Assets\Scripts\Movement\Core\Groundcheck.cs" />
@@ -79,6 +80,7 @@
     <Compile Include="Assets\Scripts\SaveLoad\IDataPersistence.cs" />
     <Compile Include="Assets\Scripts\Events\OnDashEvent.cs" />
     <Compile Include="Assets\Scripts\Events\OnUndoBeganEvent.cs" />
+    <Compile Include="Assets\Scripts\Services\IService.cs" />
     <Compile Include="Assets\Scripts\Events\IntroUpdateEvent.cs" />
     <Compile Include="Assets\Scripts\Events\NewGameRequestedEvent.cs" />
     <Compile Include="Assets\Scripts\Time\TimeController.cs" />
@@ -114,6 +116,7 @@
     <Compile Include="Assets\Scripts\Events\EventBusListener.cs" />
     <Compile Include="Assets\Scripts\Movement\Visuals\FOVEffector.cs" />
     <Compile Include="Assets\Scripts\UI\TextButtonSlave.cs" />
+    <Compile Include="Assets\Scripts\Services\StudioBankLoaderService.cs" />
     <Compile Include="Assets\Scripts\Config\SettingsWorker.cs" />
     <Compile Include="Assets\Cool Visual Effects - Part 1\Scripts\EffectManager.cs" />
     <Compile Include="Assets\Scripts\Movement\Core\MovingPlatform.cs" />

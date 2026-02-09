@@ -22,6 +22,7 @@ public sealed class UndoProcess : MonoBehaviour
 
     bool undoInProgress;
     bool cachedDetectCollisions = true;
+    bool introBlocked;
 
     void Awake()
     {
@@ -47,6 +48,9 @@ public sealed class UndoProcess : MonoBehaviour
         {
             movementController.OnSnapCompleted += HandleSnapCompleted;
         }
+
+        EventBus.Subscribe<IntroStartEvent>(HandleIntroStart);
+        EventBus.Subscribe<IntroUpdateEvent>(HandleIntroUpdate);
     }
 
     void OnDisable()
@@ -55,6 +59,9 @@ public sealed class UndoProcess : MonoBehaviour
         {
             movementController.OnSnapCompleted -= HandleSnapCompleted;
         }
+
+        EventBus.Unsubscribe<IntroStartEvent>(HandleIntroStart);
+        EventBus.Unsubscribe<IntroUpdateEvent>(HandleIntroUpdate);
 
         if (undoInProgress)
         {
@@ -75,7 +82,7 @@ public sealed class UndoProcess : MonoBehaviour
 
     void BeginUndo()
     {
-        if (undoInProgress || movementController == null || lastJumpTracker == null)
+        if (introBlocked || undoInProgress || movementController == null || lastJumpTracker == null)
         {
             return;
         }
@@ -181,5 +188,18 @@ public sealed class UndoProcess : MonoBehaviour
     {
         float distance = Mathf.Max(0f, groundCheckDistance);
         return Physics.Raycast(position, Vector3.down, distance, groundMask, QueryTriggerInteraction.Ignore);
+    }
+
+    void HandleIntroStart(IntroStartEvent eventData)
+    {
+        if (eventData.WillPlay)
+        {
+            introBlocked = true;
+        }
+    }
+
+    void HandleIntroUpdate(IntroUpdateEvent _)
+    {
+        introBlocked = false;
     }
 }
