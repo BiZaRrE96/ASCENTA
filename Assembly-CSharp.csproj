@@ -56,6 +56,7 @@
     <Compile Include="Assets\Scripts\Movement\Visuals\DashFOVEffector.cs" />
     <Compile Include="Assets\Scripts\Config\ConfigData.cs" />
     <Compile Include="Assets\Scripts\Movement\Visuals\CameraFOVEffector.cs" />
+    <Compile Include="Assets\Scripts\UI\PauseController.cs" />
     <Compile Include="Assets\Scripts\Events\OnJumpPadBoostEvent.cs" />
     <Compile Include="Assets\Scripts\UI\HoverSoundSlave.cs" />
     <Compile Include="Assets\Scripts\Events\PreJumpCalculationEvent.cs" />
@@ -130,6 +131,7 @@
     <Compile Include="Assets\Scripts\Events\IntroCompletedEvent.cs" />
     <Compile Include="Assets\Scripts\SaveLoad\SaveLoadUI.cs" />
     <Compile Include="Assets\Scripts\SaveLoad\FileDataHandler.cs" />
+    <Compile Include="Assets\Scripts\Events\RequestPauseEvent.cs" />
     <Compile Include="Assets\Scripts\Audio\DashCooldownFmodSfx.cs" />
     <Compile Include="Assets\Scripts\Animations\RandomRotator.cs" />
     <Compile Include="Assets\Scripts\UI\GameStartButtonSlave.cs" />
