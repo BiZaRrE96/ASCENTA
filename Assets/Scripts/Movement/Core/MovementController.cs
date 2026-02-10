@@ -16,10 +16,7 @@ public class MovementController : MonoBehaviour
     [SerializeField] float lookSensitivity = 0.15f;
 
     [SerializeField] bool lockForwardToLook;
-    [SerializeField] bool moveWithPlatformUsingMovePosition = true;
-    [SerializeField] bool disableGravityWhenOnMovingPlatform = true;
-    [SerializeField] bool applyUngroundedPlatformDeltaAsForce = true;
-    [SerializeField, Min(0f)] float ungroundedPlatformDeltaForceMultiplier = 1f;
+    [SerializeField] bool moveWithPlatformDelta = true;
 
     [Header("Movement Properties")]
     [SerializeField] float baseMaxSpeed = 6f;
@@ -73,15 +70,9 @@ public class MovementController : MonoBehaviour
 
     float lookPitch;
     float lookYaw;
-    MovingPlatform subscribedMovingPlatform;
-    Vector3 lastPlatformDelta;
-    bool hasBufferedLandingAdjustment;
-    Vector3 bufferedLandingHitPoint;
-    Vector3 bufferedLandingDelta;
-    bool hasBufferedLandingDelta;
-    MovingPlatform bufferedLandingPlatform;
     int fixedUpdateStep;
-    int applyLandingAdjustmentAtStep;
+    Vector3 pendingVelocityDelta;
+    bool hasPendingVelocityDelta;
 
     void Awake()
     {
@@ -128,22 +119,10 @@ public class MovementController : MonoBehaviour
 
     void OnDisable()
     {
-        if (groundcheck != null)
-        {
-            groundcheck.OnUngrounded -= HandleUngrounded;
-            groundcheck.OnMovingPlatformEntered -= HandleMovingPlatformEntered;
-        }
-
-        UnsubscribeFromCurrentMovingPlatform();
     }
 
     void OnEnable()
     {
-        if (groundcheck != null)
-        {
-            groundcheck.OnUngrounded += HandleUngrounded;
-            groundcheck.OnMovingPlatformEntered += HandleMovingPlatformEntered;
-        }
     }
 
     void OnLook(InputValue value)
@@ -229,12 +208,20 @@ public class MovementController : MonoBehaviour
         Vector3 planeNormal = grounded ? groundcheck.GroundNormal : Vector3.up;
         Collider groundCollider = grounded ? groundcheck.GroundCollider : null;
         MovingPlatform movingPlatform = groundcheck != null ? groundcheck.CurrentMovingPlatform : null;
-        UpdateMovingPlatformSubscription(movingPlatform);
-        ApplyBufferedLandingAdjustmentIfNeeded();
-
         bool groundedOnMovingPlatform = groundcheck != null && groundcheck.IsGroundedOnMovingPlatform;
-        UpdateGravityState(groundedOnMovingPlatform);
+        UpdateGravityState();
 
+        Vector3 platformDelta = Vector3.zero;
+        if (moveWithPlatformDelta && groundedOnMovingPlatform && movingPlatform != null)
+        {
+            Vector3? platformDeltaResult = movingPlatform.FixedUpdateByPlayer();
+            if (platformDeltaResult.HasValue)
+            {
+                platformDelta = platformDeltaResult.Value;
+            }
+        }
+
+        Vector3 velocityChange = Vector3.zero;
         float targetTraction = defaultTraction;
         float targetDamping = defaultSurfaceDamping;
         if (grounded && groundCollider != null)
@@ -250,7 +237,15 @@ public class MovementController : MonoBehaviour
         currentTraction = Mathf.MoveTowards(currentTraction, targetTraction, tractionLerpSpeed * deltaTime);
         currentSurfaceDamping = Mathf.MoveTowards(currentSurfaceDamping, targetDamping, dampingLerpSpeed * deltaTime);
 
+        Vector3 platformVelocity = Vector3.zero;
+        if (platformDelta.sqrMagnitude > Mathf.Epsilon)
+        {
+            float fixedDt = Mathf.Max(Time.fixedDeltaTime, Mathf.Epsilon);
+            platformVelocity = platformDelta / fixedDt;
+        }
+
         Vector3 lateralVelocity = Vector3.ProjectOnPlane(rb.linearVelocity, planeNormal);
+        Vector3 lateralVelocityWithoutPlatform = lateralVelocity - Vector3.ProjectOnPlane(platformVelocity, planeNormal);
 
         Vector3 inputDirection = Vector3.zero;
         if (moveIntent.sqrMagnitude > Mathf.Epsilon)
@@ -263,13 +258,12 @@ public class MovementController : MonoBehaviour
         }
 
         bool hasInput = inputDirection.sqrMagnitude > Mathf.Epsilon;
-        Vector3 velocityChange = Vector3.zero;
 
         if (hasInput)
         {
             // Traction controls how quickly we accelerate and redirect toward the intended velocity.
             Vector3 desiredVelocity = inputDirection * baseMaxSpeed;
-            Vector3 deltaVelocity = desiredVelocity - lateralVelocity;
+            Vector3 deltaVelocity = desiredVelocity - lateralVelocityWithoutPlatform;
 
             float tractionModifier = currentTraction;
             if (!grounded)
@@ -292,14 +286,22 @@ public class MovementController : MonoBehaviour
         {
             // Damping/braking slows the player when no input is provided.
             float brakingLimit = baseDamping * currentSurfaceDamping;
-            Vector3 braking = -Vector3.ClampMagnitude(lateralVelocity, brakingLimit * deltaTime);
+            Vector3 braking = -Vector3.ClampMagnitude(lateralVelocityWithoutPlatform, brakingLimit * deltaTime);
             velocityChange += braking;
         }
 
         if (velocityChange.sqrMagnitude > Mathf.Epsilon)
         {
-            rb.AddForce(velocityChange, ForceMode.VelocityChange);
+            QueueVelocityDelta(velocityChange);
         }
+
+        if (platformDelta.sqrMagnitude > Mathf.Epsilon)
+        {
+            MoveWithPlatformDelta(platformDelta);
+        }
+
+        ApplyQueuedVelocityDelta();
+
     }
 
     void UpdateMoveIntent()
@@ -328,15 +330,14 @@ public class MovementController : MonoBehaviour
         return desired;
     }
 
-    void UpdateGravityState(bool groundedOnMovingPlatform)
+    void UpdateGravityState()
     {
         if (rb == null)
         {
             return;
         }
 
-        bool shouldIgnoreGravity = (ignoreGravityDuringDash && CurrentMovementState == MovementState.Dashing)
-            || (disableGravityWhenOnMovingPlatform && groundedOnMovingPlatform);
+        bool shouldIgnoreGravity = ignoreGravityDuringDash && CurrentMovementState == MovementState.Dashing;
         if (shouldIgnoreGravity)
         {
             if (rb.useGravity)
@@ -567,45 +568,6 @@ public class MovementController : MonoBehaviour
         return externalInputAllowed && !snapInputLocked;
     }
 
-    void UpdateMovingPlatformSubscription(MovingPlatform movingPlatform)
-    {
-        if (!moveWithPlatformUsingMovePosition)
-        {
-            UnsubscribeFromCurrentMovingPlatform();
-            return;
-        }
-
-        if (subscribedMovingPlatform == movingPlatform)
-        {
-            return;
-        }
-
-        UnsubscribeFromCurrentMovingPlatform();
-
-        if (movingPlatform == null)
-        {
-            return;
-        }
-
-        subscribedMovingPlatform = movingPlatform;
-        subscribedMovingPlatform.OnDeltaMoved += MoveWithPlatformDelta;
-    }
-
-    void UnsubscribeFromCurrentMovingPlatform()
-    {
-        if (subscribedMovingPlatform == null)
-        {
-            lastPlatformDelta = Vector3.zero;
-            ClearBufferedLandingAdjustment();
-            return;
-        }
-
-        subscribedMovingPlatform.OnDeltaMoved -= MoveWithPlatformDelta;
-        subscribedMovingPlatform = null;
-        lastPlatformDelta = Vector3.zero;
-        ClearBufferedLandingAdjustment();
-    }
-
     public void MoveWithPlatformDelta(Vector3 movementDelta)
     {
         if (rb == null || movementDelta.sqrMagnitude <= Mathf.Epsilon)
@@ -613,86 +575,31 @@ public class MovementController : MonoBehaviour
             return;
         }
 
-        lastPlatformDelta = movementDelta;
-        if (hasBufferedLandingAdjustment)
-        {
-            bufferedLandingDelta = movementDelta;
-            hasBufferedLandingDelta = true;
-            return;
-        }
-
-        rb.MovePosition(rb.position + movementDelta);
+        QueueVelocityDelta(movementDelta);
     }
 
-    void HandleMovingPlatformEntered(MovingPlatform platform, Vector3 hitPoint, bool entryBlocked)
+    void QueueVelocityDelta(Vector3 delta)
     {
-        if (rb == null || platform == null || entryBlocked)
+        if (delta.sqrMagnitude <= Mathf.Epsilon)
         {
             return;
         }
 
-        hasBufferedLandingAdjustment = true;
-        bufferedLandingHitPoint = hitPoint;
-        bufferedLandingPlatform = platform;
-        bufferedLandingDelta = Vector3.zero;
-        hasBufferedLandingDelta = false;
-        applyLandingAdjustmentAtStep = fixedUpdateStep + 1;
+        pendingVelocityDelta += delta;
+        hasPendingVelocityDelta = true;
     }
 
-    void HandleUngrounded()
+    void ApplyQueuedVelocityDelta()
     {
-        if (!applyUngroundedPlatformDeltaAsForce || rb == null || subscribedMovingPlatform == null)
+        if (!hasPendingVelocityDelta || rb == null)
         {
             return;
         }
 
-        if (groundcheck != null && groundcheck.IsMovingPlatformEffectBlocked)
-        {
-            return;
-        }
-
-        if (lastPlatformDelta.sqrMagnitude <= Mathf.Epsilon)
-        {
-            return;
-        }
-
-        float fixedDt = Mathf.Max(Time.fixedDeltaTime, Mathf.Epsilon);
-        Vector3 velocityDelta = (lastPlatformDelta / fixedDt) * Mathf.Max(0f, ungroundedPlatformDeltaForceMultiplier);
-        rb.AddForce(velocityDelta, ForceMode.VelocityChange);
-        ClearBufferedLandingAdjustment();
+        Vector3 delta = pendingVelocityDelta;
+        pendingVelocityDelta = Vector3.zero;
+        hasPendingVelocityDelta = false;
+        rb.AddForce(delta, ForceMode.VelocityChange);
     }
 
-    void ApplyBufferedLandingAdjustmentIfNeeded()
-    {
-        if (!hasBufferedLandingAdjustment || fixedUpdateStep < applyLandingAdjustmentAtStep || rb == null)
-        {
-            return;
-        }
-
-        Vector3 deltaToApply = hasBufferedLandingDelta
-            ? bufferedLandingDelta
-            : (bufferedLandingPlatform != null ? bufferedLandingPlatform.FrameDelta : Vector3.zero);
-
-        Vector3 velocity = rb.linearVelocity;
-        if (Mathf.Abs(velocity.y) > Mathf.Epsilon)
-        {
-            velocity.y = 0f;
-            rb.linearVelocity = velocity;
-        }
-
-        Vector3 targetPosition = rb.position + deltaToApply;
-        targetPosition.y = bufferedLandingHitPoint.y + deltaToApply.y;
-        rb.MovePosition(targetPosition);
-
-        ClearBufferedLandingAdjustment();
-    }
-
-    void ClearBufferedLandingAdjustment()
-    {
-        hasBufferedLandingAdjustment = false;
-        hasBufferedLandingDelta = false;
-        bufferedLandingDelta = Vector3.zero;
-        bufferedLandingHitPoint = Vector3.zero;
-        bufferedLandingPlatform = null;
-    }
 }

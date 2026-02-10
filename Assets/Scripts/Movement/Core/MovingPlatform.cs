@@ -59,8 +59,26 @@ public class MovingPlatform : ReversibleMono
         }
     }
 
+    bool steppedByPlayer = false;
+    float lastSteppedFixedTime = -1f;
+    float lastFixedUpdateTime = -1f;
+
     void FixedUpdate()
     {
+        float fixedTime = Time.fixedTime;
+        if (lastFixedUpdateTime == fixedTime)
+        {
+            return;
+        }
+
+        lastFixedUpdateTime = fixedTime;
+
+        if (steppedByPlayer || lastSteppedFixedTime == fixedTime)
+        {
+            steppedByPlayer = false;
+            return;
+        }
+
         if (rb == null)
         {
             return;
@@ -81,6 +99,42 @@ public class MovingPlatform : ReversibleMono
         {
             OnDeltaMoved?.Invoke(FrameDelta);
         }
+    }
+    
+    //Called by player for more explicit execution order
+    public Vector3? FixedUpdateByPlayer()
+    {
+        float fixedTime = Time.fixedTime;
+        lastSteppedFixedTime = fixedTime;
+        steppedByPlayer = true;
+
+        if (lastFixedUpdateTime == fixedTime)
+        {
+            return Vector3.zero;
+        }
+
+        if (rb == null)
+        {
+            return null;
+        }
+
+        if (!HasEnoughValidPoints())
+        {
+            RecordDelta(previousPosition);
+            return null;
+        }
+
+        AdvanceState(FixedDeltaTime);
+        Vector3 targetPosition = GetTargetPosition(rb.position);
+
+        rb.MovePosition(targetPosition);
+        RecordDelta(targetPosition);
+        if (FrameDelta.sqrMagnitude > Mathf.Epsilon)
+        {
+            return FrameDelta;
+        }
+
+        return Vector3.zero;
     }
 
     void RecordDelta(Vector3 currentPosition)
